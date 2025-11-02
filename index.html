@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Game Library</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/papaparse/5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+
+    <h1>My Game Library</h1>
+    <input type="text" id="searchInput" onkeyup="filterGames()" placeholder="Search for a game...">
+    <div id="loading">Loading all 6,000+ games, please wait...</div>
+    <div id="galleryContainer"></div>
+
+    <script>
+        // When the page loads, fetch the CSV file
+        window.addEventListener('DOMContentLoaded', () => {
+            Papa.parse("games.csv", {
+                download: true,
+                header: true,
+                complete: function(results) {
+                    console.log("Data loaded:", results.data);
+                    // Hide the loading message
+                    document.getElementById("loading").style.display = "none";
+                    // Build the gallery
+                    buildGallery(results.data);
+                }
+            });
+        });
+
+        // This function builds the HTML for each game card
+        function buildGallery(data) {
+            const container = document.getElementById("galleryContainer");
+            let allCardsHTML = ""; // We build one big string for speed
+
+            data.forEach(game => {
+                if (game.GameName) { // Make sure the row isn't empty
+                    allCardsHTML += `
+                        <div class="gameCard">
+                            <img src="${game.PosterLink}" alt="${game.GameName} Poster" loading="lazy">
+                            <h3>${game.GameName}</h3>
+                        </div>
+                    `;
+                }
+            });
+            container.innerHTML = allCardsHTML;
+        }
+
+        // This function filters the gallery based on the search bar
+        function filterGames() {
+            const filter = document.getElementById("searchInput").value.toLowerCase();
+            const cards = document.getElementsByClassName("gameCard");
+
+            for (let i = 0; i < cards.length; i++) {
+                const title = cards[i].getElementsByTagName("h3")[0];
+                if (title.innerHTML.toLowerCase().includes(filter)) {
+                    cards[i].style.display = "";
+                } else {
+                    cards[i].style.display = "none";
+                }
+            }
+        }
+    </script>
+
+</body>
+</html>
