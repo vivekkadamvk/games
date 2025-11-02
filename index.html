@@ -17,7 +17,8 @@
 
     <script>
         // No "DOMContentLoaded" listener is needed now, as the script is at the end.
-        
+        import Papa from 'papaparse';
+
         Papa.parse("games.csv", {
             download: true,
             header: true, // This line reads your header names
