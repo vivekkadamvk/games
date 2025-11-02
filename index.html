@@ -15,16 +15,16 @@
     <div id="galleryContainer"></div>
 
     <script>
-        // When the page loads, fetch the CSV file
+        // When the page loads, fetch the games.csv file
         window.addEventListener('DOMContentLoaded', () => {
             Papa.parse("games.csv", {
                 download: true,
-                header: true,
+                header: true, // This line tells the code to read your header names
+                skipEmptyLines: true, // This ignores any blank rows in your file
                 complete: function(results) {
-                    console.log("Data loaded:", results.data);
                     // Hide the loading message
                     document.getElementById("loading").style.display = "none";
-                    // Build the gallery
+                    // Build the gallery with the loaded data
                     buildGallery(results.data);
                 }
             });
@@ -36,11 +36,16 @@
             let allCardsHTML = ""; // We build one big string for speed
 
             data.forEach(game => {
-                if (game.GameName) { // Make sure the row isn't empty
+                // This code reads the exact header names you provided
+                const gameName = game.GameName;
+                const posterUrl = game.PosterLink;
+
+                // Make sure the row has a game name before we try to build a card
+                if (gameName) {
                     allCardsHTML += `
                         <div class="gameCard">
-                            <img src="${game.PosterLink}" alt="${game.GameName} Poster" loading="lazy">
-                            <h3>${game.GameName}</h3>
+                            <img src="${posterUrl}" alt="${gameName} Poster" loading="lazy">
+                            <h3>${gameName}</h3>
                         </div>
                     `;
                 }
