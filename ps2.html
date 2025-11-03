@@ -10,14 +10,15 @@
         <a href="javascript:void(0)" class="close-btn" onclick="closeNav()">&times;</a>
         
         <div class="sidebar-header">
-            <h3>Deva Tech</h3>
+            <h3>Menu</h3>
         </div>
         
         <ul class="nav-links">
+            <li><a href="index.html" class="nav-link active">Home</a></li>
             <li><a href="#" class="nav-link active">PS2</a></li>
-            <li><a href="#" class="nav-link disabled" title="Coming Soon">PS3</a></li>
-            <li><a href="#" class="nav-link disabled" title="Coming Soon">PS4</a></li>
-            <li><a href="#" class="nav-link disabled" title="Coming Soon">PS5</a></li>
+            <li><a href="ps3.html" class="nav-link active" >PS3</a></li>
+            <li><a href="ps4.html" class="nav-link active">PS4</a></li>
+            <li><a href="ps5.html" class="nav-link active">PS5</a></li>
         </ul>
     </nav>
     <div id="mainContent" class="main-content">
@@ -66,7 +67,7 @@
 
 
         // --- CSV LOADING LOGIC ---
-        Papa.parse("games.csv", {
+        Papa.parse("ps2.csv", {
             download: true,
             header: true, 
             skipEmptyLines: true, 
