@@ -1,44 +1,45 @@
-/* Basic page setup */
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    margin: 0;
-    /* We remove padding from the body so the sidebar can touch the edge */
-    padding: 0; 
-    background: linear-gradient(135deg, #0d0d5b, #000020);
-    background-attachment: fixed; 
-}
-
-/* --- NEW: SIDEBAR STYLES (MOBILE-FIRST) --- */
-
+/* --- NEW MODERN SIDEBAR STYLES --- */
 .sidebar {
-    width: 100%;
-    background: #000033; /* A solid, dark PS2 blue */
-    padding: 10px 0;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    overflow: hidden;
+    height: 100%; /* Full-height */
+    width: 250px; /* Fixed width for the sidebar */
+    position: fixed; /* Stays in one place */
+    z-index: 1000; /* Stays on top of everything */
+    top: 0;
+    left: 0;
+    background-color: #000033; /* Dark PS2 blue */
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    overflow-x: hidden; /* Disable horizontal scroll */
+    padding-top: 20px;
+    
+    /* HIDDEN BY DEFAULT: Move it off-screen to the left */
+    transform: translateX(-100%); 
+    
+    /* This is the slide animation */
+    transition: transform 0.3s ease-in-out; 
 }
 
 .sidebar-header {
-    display: none; /* We hide this on mobile by default */
+    padding: 10px 20px 20px 32px;
+    color: #ffffff;
+    font-size: 1.5rem;
+    text-align: left;
+    white-space: nowrap; /* Prevents text wrap during slide */
 }
 
 .nav-links {
     list-style: none;
     padding: 0;
     margin: 0;
-    display: flex; /* Makes links horizontal */
-    justify-content: center; /* Centers links on mobile */
 }
 
 .nav-link {
     display: block;
-    color: #cccccc;
+    padding: 10px 15px 10px 32px;
     text-decoration: none;
-    padding: 10px 15px;
-    font-weight: bold;
-    border-radius: 5px;
-    margin: 0 5px;
-    transition: background-color 0.2s;
+    font-size: 1.2rem;
+    color: #cccccc;
+    transition: 0.3s;
+    white-space: nowrap; 
 }
 
 .nav-link:hover {
@@ -49,6 +50,8 @@ body {
 .nav-link.active {
     background-color: #3e3eff;
     color: #ffffff;
+    border-left: 4px solid #ffffff;
+    padding-left: 28px;
 }
 
 .nav-link.disabled {
@@ -56,14 +59,76 @@ body {
     cursor: not-allowed;
     background-color: transparent;
 }
-
-/* --- NEW: MAIN CONTENT AREA (MOBILE-FIRST) --- */
-.main-content {
-    /* We move the padding from the body to here */
-    padding: 20px;
+.nav-link.disabled:hover {
+    background-color: transparent;
+    color: #5a5a7b;
 }
 
-/* --- HEADER AND LOGO STYLES (Unchanged) --- */
+/* The "close" button (×) */
+.sidebar .close-btn {
+    position: absolute;
+    top: 5px;
+    right: 15px;
+    font-size: 36px;
+    color: #ffffff;
+    text-decoration: none;
+}
+.sidebar .close-btn:hover {
+    color: #3e3eff;
+}
+
+/* The "hamburger" menu button (☰) */
+.open-nav-btn {
+    font-size: 30px;
+    cursor: pointer;
+    background-color: transparent;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 500; /* Sits below sidebar, above content */
+    transition: color 0.2s;
+}
+.open-nav-btn:hover {
+    color: #3e3eff;
+}
+
+/* The full-screen overlay to dim content */
+#overlay {
+    display: none; /* Hidden by default */
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-color: rgba(0,0,0,0.5); /* Semi-transparent black */
+    z-index: 999; /* Below sidebar, above content */
+    cursor: pointer;
+}
+
+/* --- Main Content Area --- */
+.main-content {
+    padding: 20px;
+    /* We add padding-top to make room for the hamburger button */
+    padding-top: 60px;
+    
+    /* We add a transition to match the sidebar slide */
+    transition: margin-left 0.3s ease-in-out; 
+}
+/* --- END NEW STYLES --- */
+
+
+/* --- PAGE STYLES (Mostly Unchanged) --- */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0; 
+    background: linear-gradient(135deg, #0d0d5b, #000020);
+    background-attachment: fixed; 
+}
+
 .header {
     display: flex;
     align-items: center;
@@ -80,8 +145,6 @@ h1 {
     color: #ffffff;
     margin: 0; 
 }
-
-/* --- ALL OTHER STYLES (Search, Gallery, etc.) --- */
 
 #searchInput {
     width: 90%;
@@ -109,6 +172,7 @@ h1 {
     margin: 0 auto;
 }
 
+/* --- OPTIMIZED Individual Game Card --- */
 .gameCard {
     background-color: #ffffff;
     border: 1px solid #e0e0e0;
@@ -141,6 +205,7 @@ h1 {
     text-overflow: ellipsis;
 }
 
+/* --- GO TO TOP BUTTON STYLES --- */
 #goToTopBtn {
     display: none; 
     position: fixed; 
@@ -163,41 +228,4 @@ h1 {
 
 #goToTopBtn:hover {
     background-color: #3e3eff; 
-}
-
-
-/* --- NEW: DESKTOP RESPONSIVE STYLES --- */
-/* This @media query applies only to screens 768px wide or larger */
-
-@media (min-width: 768px) {
-    .sidebar {
-        position: fixed; /* Sticks to the left */
-        width: 200px;
-        height: 100%;
-        padding: 20px 0;
-    }
-
-    .sidebar-header {
-        display: block; /* Shows the header on desktop */
-        padding: 10px 20px 20px 20px;
-        color: #ffffff;
-        font-size: 1.2rem;
-        text-align: center;
-    }
-
-    .nav-links {
-        display: block; /* Stacks links vertically */
-        justify-content: flex-start;
-    }
-    
-    .nav-link {
-        padding: 12px 20px;
-        margin: 5px 10px; /* Gives padding on the sides */
-    }
-
-    .main-content {
-        /* Pushes the main content over so it's not hidden by the sidebar */
-        margin-left: 200px;
-        padding: 20px 30px;
-    }
 }
