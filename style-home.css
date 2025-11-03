@@ -90,3 +90,24 @@ h1 {
     background-color: rgba(100, 100, 100, 0.1);
     box-shadow: none;
 }
+
+
+/* --- NEW: Footer Styles --- */
+.site-footer {
+    padding: 30px 20px;
+    background-color: #000020; /* Darker than the background */
+    color: #8a8a9e; /* Faded purple-gray text */
+    text-align: center;
+    font-size: 0.9rem;
+    border-top: 1px solid #3e3eff;
+}
+
+.site-footer p {
+    margin: 5px 0;
+    line-height: 1.5;
+}
+
+/* For app pages, we need to add the sidebar margin */
+.sidebar-open .site-footer {
+    margin-left: 250px;
+}
