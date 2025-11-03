@@ -113,17 +113,27 @@
 
         // --- SEARCH FILTER FUNCTION ---
         function filterGames() {
+
+            const noResultsMessage = document.getElementById("noResults");
             const filter = document.getElementById("searchInput").value.toLowerCase();
             const cards = document.getElementsByClassName("gameCard");
 
+            let gamesFound = 0; // NEW: A counter
             for (let i = 0; i < cards.length; i++) {
                 const title = cards[i].getElementsByTagName("h3")[0];
                 if (title.innerHTML.toLowerCase().includes(filter)) {
                     cards[i].style.display = "";
+                    gamesFound++; // NEW: Increment the counter
                 } else {
                     cards[i].style.display = "none";
                 }
-            }
+            }     // NEW: Show or hide the message based on the count
+                if (gamesFound === 0) {
+                    noResultsMessage.classList.remove("no-results-hidden");
+                } else {
+                    noResultsMessage.classList.add("no-results-hidden");
+                }
+            
         }
 
         // --- SCROLL-TO-TOP JAVASCRIPT ---
