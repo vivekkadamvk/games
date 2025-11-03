@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deva Tech Services</title>
+    <link rel="stylesheet" href="style-app.css">
+</head>
+<body> <nav id="mySidebar" class="sidebar">
+        <a href="javascript:void(0)" class="close-btn" onclick="closeNav()">&times;</a>
+        
+        <div class="sidebar-header">
+            <h3>Menu</h3>
+        </div>
+        
+        <ul class="nav-links">
+            <li><a href="index.html" class="nav-link active">Home</a></li>
+            <li><a href="ps2.html" class="nav-link active">PS2</a></li>
+            <li><a href="ps3.html" class="nav-link active" >PS3</a></li>
+            <li><a href="ps4.html" class="nav-link active">PS4</a></li>
+            <li><a href="ps5.html" class="nav-link active">PS5</a></li>
+            <li><a href="#" class="nav-link active">PC</a></li>
+        </ul>
+    </nav>
+    <div id="mainContent" class="main-content">
+
+        <button class="open-nav-btn" id="openNavBtn">&#9776;</button>
+
+        <div class="header">
+            <img src="https://images.seeklogo.com/logo-png/29/1/playstation-2-logo-png_seeklogo-298960.png" alt="PS2 Logo" class="logo">
+            <h1>PC Game Library</h1>
+        </div>
+
+        <input type="text" id="searchInput" onkeyup="filterGames()" placeholder="Search for a game...">
+        
+        <div id="loading">Loading Games...</div>
+
+        <div id="galleryContainer"></div>
+    </div>
+    
+    <button onclick="scrollToTop()" id="goToTopBtn" title="Go to top">▲</button>
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <script>
+        
+        // --- *** NEW: JAVASCRIPT FOR "PUSH" MENU *** ---
+        // We get the elements we need to control
+        const bodyEl = document.body;
+        const openBtn = document.getElementById("openNavBtn");
+        const closeBtn = document.querySelector(".close-btn"); // Get close button
+
+        // Event Listeners are cleaner than onclick=""
+        openBtn.onclick = openNav;
+        closeBtn.onclick = closeNav;
+
+        // Add a class to the <body> to trigger the CSS transition
+        function openNav() {
+            bodyEl.classList.add("sidebar-open");
+        }
+
+        // Remove the class to reverse the transition
+        function closeNav() {
+            bodyEl.classList.remove("sidebar-open");
+        }
+        // --- *** END NEW JAVASCRIPT *** ---
+
+
+        // --- CSV LOADING LOGIC ---
+        Papa.parse("pc.csv", {
+            download: true,
+            header: true, 
+            skipEmptyLines: true, 
+            complete: function(results) {
+                document.getElementById("loading").style.display = "none";
+                buildGallery(results.data);
+                // NEW: Fade in the gallery *after* it's built
+                document.getElementById("galleryContainer").style.opacity = 1;
+            }
+        });
+        
+        // --- GALLERY BUILDER FUNCTION ---
+        function buildGallery(data) {
+            const container = document.getElementById("galleryContainer");
+            let allCardsHTML = ""; 
+
+            data.forEach(game => {
+                const gameName = game.GameName;
+                const posterUrl = game.PosterLink;
+
+                if (gameName) {
+                    allCardsHTML += `
+                        <div class="gameCard">
+                            <img src="${posterUrl}" alt="${gameName} Poster" loading="lazy">
+                            <h3>${gameName}</h3>
+                        </div>
+                    `;
+                }
+            });
+            container.innerHTML = allCardsHTML;
+        }
+
+        // --- SEARCH FILTER FUNCTION ---
+        function filterGames() {
+            const filter = document.getElementById("searchInput").value.toLowerCase();
+            const cards = document.getElementsByClassName("gameCard");
+
+            for (let i = 0; i < cards.length; i++) {
+                const title = cards[i].getElementsByTagName("h3")[0];
+                if (title.innerHTML.toLowerCase().includes(filter)) {
+                    cards[i].style.display = "";
+                } else {
+                    cards[i].style.display = "none";
+                }
+            }
+        }
+
+        // --- SCROLL-TO-TOP JAVASCRIPT ---
+        let mybutton = document.getElementById("goToTopBtn");
+        window.onscroll = function() {scrollFunction()};
+
+        function scrollFunction() {
+          // NEW: We now use opacity and visibility for a fade effect
+          if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+            mybutton.style.opacity = "1";
+            mybutton.style.visibility = "visible";
+          } else {
+            mybutton.style.opacity = "0";
+            mybutton.style.visibility = "hidden";
+          }
+        }
+        function scrollToTop() {
+          window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+    </script>
+
+</body>
+</html>
