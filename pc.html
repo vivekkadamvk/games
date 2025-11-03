@@ -3,111 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deva Tech Services - PC</title>
+    <title>Deva Tech Services</title>
     <link rel="stylesheet" href="style-app.css">
 </head>
-<body>
-
-    <nav id="mySidebar" class="sidebar">
+<body> <nav id="mySidebar" class="sidebar">
         <a href="javascript:void(0)" class="close-btn" onclick="closeNav()">&times;</a>
+        
         <div class="sidebar-header">
             <h3>Menu</h3>
         </div>
+        
         <ul class="nav-links">
             <li><a href="index.html" class="nav-link active">Home</a></li>
-            <li><a href="#" class="nav-link active">PC</a></li>
             <li><a href="ps2.html" class="nav-link active">PS2</a></li>
             <li><a href="ps3.html" class="nav-link active" >PS3</a></li>
             <li><a href="ps4.html" class="nav-link active">PS4</a></li>
             <li><a href="ps5.html" class="nav-link active">PS5</a></li>
+            <li><a href="#" class="nav-link active">PC</a></li>
         </ul>
     </nav>
-    
     <div id="mainContent" class="main-content">
+
         <button class="open-nav-btn" id="openNavBtn">&#9776;</button>
 
         <div class="header">
-            <img src="https://images.seeklogo.com/logo-png/29/1/playstation-2-logo-png_seeklogo-298960.png" alt="PC Logo" class="logo">
+            <img src="https://images.seeklogo.com/logo-png/29/1/playstation-2-logo-png_seeklogo-298960.png" alt="PS2 Logo" class="logo">
             <h1>PC Game Library</h1>
         </div>
 
         <input type="text" id="searchInput" onkeyup="filterGames()" placeholder="Search for a game...">
         
         <div id="loading">Loading Games...</div>
+
         <div id="galleryContainer"></div>
-        <div id="loader-bottom" class="loader-bottom-hidden">Loading more...</div>
     </div>
     
     <button onclick="scrollToTop()" id="goToTopBtn" title="Go to top">▲</button>
     
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
     <script>
         
-        // --- JAVASCRIPT FOR "PUSH" MENU ---
+        // --- *** NEW: JAVASCRIPT FOR "PUSH" MENU *** ---
+        // We get the elements we need to control
         const bodyEl = document.body;
         const openBtn = document.getElementById("openNavBtn");
-        const closeBtn = document.querySelector(".close-btn"); 
+        const closeBtn = document.querySelector(".close-btn"); // Get close button
+
+        // Event Listeners are cleaner than onclick=""
         openBtn.onclick = openNav;
         closeBtn.onclick = closeNav;
-        function openNav() { bodyEl.classList.add("sidebar-open"); }
-        function closeNav() { bodyEl.classList.remove("sidebar-open"); }
-        
-        // --- INFINITE SCROLL LOGIC ---
-        let allGamesData = [];
-        let filteredGamesData = [];
-        let currentPage = 1;
-        
-        // *** THIS IS YOUR NEW REQUESTED CHANGE ***
-        const gamesPerPage = 100; // Changed from 50 to 100
-        
-        let isLoading = false;
-        
-        const galleryContainer = document.getElementById("galleryContainer");
-        const loadingMessage = document.getElementById("loading");
-        const loaderBottom = document.getElementById("loader-bottom");
-        const searchInput = document.getElementById("searchInput");
 
-        // 1. Start by loading the CSV
+        // Add a class to the <body> to trigger the CSS transition
+        function openNav() {
+            bodyEl.classList.add("sidebar-open");
+        }
+
+        // Remove the class to reverse the transition
+        function closeNav() {
+            bodyEl.classList.remove("sidebar-open");
+        }
+        // --- *** END NEW JAVASCRIPT *** ---
+
+
+        // --- CSV LOADING LOGIC ---
         Papa.parse("pc.csv", {
             download: true,
             header: true, 
             skipEmptyLines: true, 
             complete: function(results) {
-                loadingMessage.style.display = "none";
-                
-                // --- DEBUG CODE ---
-                // This will print the first row and all available header names
-                console.log("CSV load complete. All available headers:", results.meta.fields);
-                console.log("First row of data:", results.data[0]);
-                // --- END DEBUG CODE ---
-
-                allGamesData = results.data;
-                filteredGamesData = allGamesData;
-                loadMoreGames(); // Load the first 100 games
+                document.getElementById("loading").style.display = "none";
+                buildGallery(results.data);
+                // NEW: Fade in the gallery *after* it's built
+                document.getElementById("galleryContainer").style.opacity = 1;
             }
         });
+        
+        // --- GALLERY BUILDER FUNCTION ---
+        function buildGallery(data) {
+            const container = document.getElementById("galleryContainer");
+            let allCardsHTML = ""; 
 
-        // 2. This function loads the *next* 100 games
-        function loadMoreGames() {
-            if (isLoading) return;
-            isLoading = true;
-            loaderBottom.classList.remove("loader-bottom-hidden");
+            data.forEach(game => {
+                const gameName = game.GameName;
+                const posterUrl = game.PosterLink;
 
-            const startIndex = (currentPage - 1) * gamesPerPage;
-            const endIndex = currentPage * gamesPerPage;
-            const gamesToLoad = filteredGamesData.slice(startIndex, endIndex);
-
-            let allCardsHTML = "";
-            gamesToLoad.forEach(game => {
-                
-                // --- *** THE FIX *** ---
-                // This "bracket" method works even if your headers have spaces,
-                // like "Game Name" or "Poster Link".
-                // I am assuming your headers are still "GameName" and "PosterLink"
-                const gameName = game["GameName"];
-                const posterUrl = game["PosterLink"];
-                // --- *** END FIX *** ---
-                
                 if (gameName) {
                     allCardsHTML += `
                         <div class="gameCard">
@@ -117,44 +98,30 @@
                     `;
                 }
             });
-
-            galleryContainer.innerHTML += allCardsHTML;
-            currentPage++;
-            isLoading = false;
-            loaderBottom.classList.add("loader-bottom-hidden");
+            container.innerHTML = allCardsHTML;
         }
 
-        // 3. This is the new, optimized search function
+        // --- SEARCH FILTER FUNCTION ---
         function filterGames() {
-            const filter = searchInput.value.toLowerCase();
-            
-            // --- *** THE FIX (FOR SEARCH) *** ---
-            filteredGamesData = allGamesData.filter(game => {
-                // Ensure the game and GameName exist before trying to read it
-                if (game && game["GameName"]) {
-                    return game["GameName"].toLowerCase().includes(filter);
-                }
-                return false;
-            });
-            // --- *** END FIX *** ---
-            
-            currentPage = 1;
-            galleryContainer.innerHTML = "";
-            loadMoreGames();
-        }
+            const filter = document.getElementById("searchInput").value.toLowerCase();
+            const cards = document.getElementsByClassName("gameCard");
 
-        // 4. This detects when the user scrolls to the bottom
-        window.onscroll = () => {
-            if (isLoading) return; 
-            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
-                loadMoreGames();
+            for (let i = 0; i < cards.length; i++) {
+                const title = cards[i].getElementsByTagName("h3")[0];
+                if (title.innerHTML.toLowerCase().includes(filter)) {
+                    cards[i].style.display = "";
+                } else {
+                    cards[i].style.display = "none";
+                }
             }
-            scrollFunction(); 
-        };
+        }
 
         // --- SCROLL-TO-TOP JAVASCRIPT ---
         let mybutton = document.getElementById("goToTopBtn");
+        window.onscroll = function() {scrollFunction()};
+
         function scrollFunction() {
+          // NEW: We now use opacity and visibility for a fade effect
           if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
             mybutton.style.opacity = "1";
             mybutton.style.visibility = "visible";
