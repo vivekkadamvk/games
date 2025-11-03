@@ -1,3 +1,17 @@
+/* --- NEW: Keyframe Animation for Card Fade-in --- */
+@keyframes cardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px); /* Start 20px lower */
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+/* --- END NEW --- */
+
+
 /* --- MODERN SIDEBAR STYLES --- */
 .sidebar {
     height: 100%; 
@@ -10,18 +24,11 @@
     box-shadow: 0 4px 20px rgba(0,0,0,0.5);
     overflow-x: hidden; 
     padding-top: 20px;
-    
-    /* 1. HIDDEN BY DEFAULT: Move it off-screen */
     transform: translateX(-100%); 
-    
-    /* 2. NEW: This is the smooth animation */
-    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
-
-    /* 3. NEW: This tells the GPU to get ready */
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     will-change: transform;
 }
 
-/* 4. NEW: This class is added by JS to open the sidebar */
 .sidebar-open .sidebar {
     transform: translateX(0);
 }
@@ -34,17 +41,40 @@
     white-space: nowrap;
 }
 
-/* (Sidebar links are unchanged) */
 .nav-links { list-style: none; padding: 0; margin: 0; }
-.nav-link { display: block; padding: 10px 15px 10px 32px; text-decoration: none; font-size: 1.2rem; color: #cccccc; transition: 0.3s; white-space: nowrap; }
-.nav-link:hover { background-color: #1a1a7c; color: #ffffff; }
-.nav-link.active { background-color: #3e3eff; color: #ffffff; border-left: 4px solid #ffffff; padding-left: 28px; }
+.nav-link {
+    display: block;
+    padding: 10px 15px 10px 32px;
+    text-decoration: none;
+    font-size: 1.2rem;
+    color: #cccccc;
+    white-space: nowrap; 
+    transition: all 0.2s ease-in-out; /* NEW: Smooth hover */
+}
+.nav-link:hover {
+    background-color: #1a1a7c;
+    color: #ffffff;
+}
+.nav-link.active {
+    background-color: #3e3eff;
+    color: #ffffff;
+    border-left: 4px solid #ffffff;
+    padding-left: 28px;
+}
 .nav-link.disabled { color: #5a5a7b; cursor: not-allowed; }
 .nav-link.disabled:hover { background-color: transparent; color: #5a5a7b; }
-.sidebar .close-btn { position: absolute; top: 5px; right: 15px; font-size: 36px; color: #ffffff; text-decoration: none; }
+
+.sidebar .close-btn {
+    position: absolute;
+    top: 5px;
+    right: 15px;
+    font-size: 36px;
+    color: #ffffff;
+    text-decoration: none;
+    transition: color 0.2s ease-in-out; /* NEW: Smooth hover */
+}
 .sidebar .close-btn:hover { color: #3e3eff; }
 
-/* The "hamburger" menu button (☰) */
 .open-nav-btn {
     font-size: 30px;
     cursor: pointer;
@@ -53,31 +83,22 @@
     padding: 0; 
     border: none;
     margin-bottom: 10px;
-    transition: color 0.2s;
+    transition: color 0.2s ease-in-out; /* NEW: Smooth hover */
 }
-.open-nav-btn:hover {
-    color: #3e3eff;
-}
-
+.open-nav-btn:hover { color: #3e3eff; }
 
 /* --- Main Content Area --- */
 .main-content {
     padding: 20px;
-    padding-top: 60px; /* Make room for hamburger btn */
-    
-    /* 1. NEW: This transition *must* match the sidebar's 0.4s */
+    padding-top: 60px;
     transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    margin-left: 0; /* Default state */
-
-    /* 2. NEW: Tell the GPU to get ready */
+    margin-left: 0; 
     will-change: transform;
 }
 
-/* 3. NEW: This rule "pushes" the content when the sidebar is open */
 .sidebar-open .main-content {
     transform: translateX(250px);
 }
-
 
 /* --- PAGE STYLES --- */
 body {
@@ -86,7 +107,6 @@ body {
     padding: 0; 
     background: linear-gradient(135deg, #0d0d5b, #000020);
     background-attachment: fixed;
-    /* NEW: This prevents a horizontal scrollbar during animation */
     overflow-x: hidden;
 }
 
@@ -96,16 +116,8 @@ body {
     justify-content: center;
     padding-bottom: 20px; 
 }
-
-.logo {
-    height: 40px; 
-    margin-right: 15px; 
-}
-
-h1 {
-    color: #ffffff;
-    margin: 0; 
-}
+.logo { height: 40px; margin-right: 15px; }
+h1 { color: #ffffff; margin: 0; }
 
 #searchInput {
     width: 90%;
@@ -131,10 +143,6 @@ h1 {
     gap: 20px;
     max-width: 1200px;
     margin: 0 auto;
-
-    /* NEW: Add a fade-in animation for when the data loads */
-    opacity: 0;
-    transition: opacity 0.5s ease-in-out;
 }
 
 /* --- OPTIMIZED Individual Game Card --- */
@@ -145,13 +153,16 @@ h1 {
     overflow: hidden;
     text-align: center;
     padding: 10px;
-    transition: transform 0.2s;
     will-change: transform;
+    
+    /* NEW: Animation Properties */
+    opacity: 0; /* Start hidden */
+    animation: cardFadeIn 0.4s ease-out forwards; /* Apply the animation */
+    /* The "animation-delay" will be added by JavaScript */
 }
 
 .gameCard:hover {
     transform: translateY(-5px);
-    /* NEW: Re-adding a subtle shadow on *hover* is cheap */
     box-shadow: 0 8px 16px rgba(0,0,0,0.1);
 }
 
@@ -172,12 +183,10 @@ h1 {
     text-overflow: ellipsis;
 }
 
-/* --- GO TO TOP BUTTON STYLES (NOW WITH FADE) --- */
+/* --- GO TO TOP BUTTON STYLES (WITH FADE) --- */
 #goToTopBtn {
-    /* NEW: Use opacity & visibility for fade-in/out */
     opacity: 0;
     visibility: hidden;
-    
     position: fixed; 
     bottom: 30px;
     right: 30px;
@@ -193,8 +202,6 @@ h1 {
     width: 50px;
     height: 50px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    
-    /* NEW: Add transitions for the fade */
     transition: background-color 0.2s, opacity 0.3s, visibility 0.3s;
 }
 
