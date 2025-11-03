@@ -40,7 +40,7 @@
     
     <button onclick="scrollToTop()" id="goToTopBtn" title="Go to top">▲</button>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/papaparse/5.4.1/papaparse.min.js"></script>
     <script>
         
         // --- JAVASCRIPT FOR "PUSH" MENU ---
@@ -52,13 +52,15 @@
         function openNav() { bodyEl.classList.add("sidebar-open"); }
         function closeNav() { bodyEl.classList.remove("sidebar-open"); }
         
-        // --- *** NEW: INFINITE SCROLL LOGIC *** ---
+        // --- INFINITE SCROLL LOGIC ---
+        let allGamesData = [];
+        let filteredGamesData = [];
+        let currentPage = 1;
         
-        let allGamesData = []; // Stores all 36,000+ games
-        let filteredGamesData = []; // Stores the *filtered* games
-        let currentPage = 1; // Keeps track of our "page"
-        const gamesPerPage = 50; // How many games to load at a time
-        let isLoading = false; // Prevents loading twice
+        // *** THIS IS YOUR NEW REQUESTED CHANGE ***
+        const gamesPerPage = 100; // Changed from 50 to 100
+        
+        let isLoading = false;
         
         const galleryContainer = document.getElementById("galleryContainer");
         const loadingMessage = document.getElementById("loading");
@@ -72,41 +74,51 @@
             skipEmptyLines: true, 
             complete: function(results) {
                 loadingMessage.style.display = "none";
-                allGamesData = results.data; // Save all 36,000 games
-                filteredGamesData = allGamesData; // By default, filtered list is all games
-                loadMoreGames(); // Load the first 50 games
+                
+                // --- DEBUG CODE ---
+                // This will print the first row and all available header names
+                console.log("CSV load complete. All available headers:", results.meta.fields);
+                console.log("First row of data:", results.data[0]);
+                // --- END DEBUG CODE ---
+
+                allGamesData = results.data;
+                filteredGamesData = allGamesData;
+                loadMoreGames(); // Load the first 100 games
             }
         });
 
-        // 2. This function loads the *next* 50 games
+        // 2. This function loads the *next* 100 games
         function loadMoreGames() {
-            if (isLoading) return; // Don't load if we are already loading
+            if (isLoading) return;
             isLoading = true;
             loaderBottom.classList.remove("loader-bottom-hidden");
 
-            // Calculate which games to load
             const startIndex = (currentPage - 1) * gamesPerPage;
             const endIndex = currentPage * gamesPerPage;
-            
-            // Get the "slice" of 50 games from the filtered list
             const gamesToLoad = filteredGamesData.slice(startIndex, endIndex);
 
             let allCardsHTML = "";
             gamesToLoad.forEach(game => {
-                if (game.GameName) {
+                
+                // --- *** THE FIX *** ---
+                // This "bracket" method works even if your headers have spaces,
+                // like "Game Name" or "Poster Link".
+                // I am assuming your headers are still "GameName" and "PosterLink"
+                const gameName = game["GameName"];
+                const posterUrl = game["PosterLink"];
+                // --- *** END FIX *** ---
+                
+                if (gameName) {
                     allCardsHTML += `
                         <div class="gameCard">
-                            <img src="${game.PosterLink}" alt="${game.GameName} Poster" loading="lazy">
-                            <h3>${game.GameName}</h3>
+                            <img src="${posterUrl}" alt="${gameName} Poster" loading="lazy">
+                            <h3>${gameName}</h3>
                         </div>
                     `;
                 }
             });
 
-            // IMPORTANT: We *append* (add to) the container, not replace it
             galleryContainer.innerHTML += allCardsHTML;
-
-            // Prepare for the next page
             currentPage++;
             isLoading = false;
             loaderBottom.classList.add("loader-bottom-hidden");
@@ -116,12 +128,16 @@
         function filterGames() {
             const filter = searchInput.value.toLowerCase();
             
-            // Filter the master 36,000-row list in JavaScript (very fast)
+            // --- *** THE FIX (FOR SEARCH) *** ---
             filteredGamesData = allGamesData.filter(game => {
-                return game.GameName.toLowerCase().includes(filter);
+                // Ensure the game and GameName exist before trying to read it
+                if (game && game["GameName"]) {
+                    return game["GameName"].toLowerCase().includes(filter);
+                }
+                return false;
             });
+            // --- *** END FIX *** ---
             
-            // Reset the page, clear the gallery, and load the *first 50* of the filtered results
             currentPage = 1;
             galleryContainer.innerHTML = "";
             loadMoreGames();
@@ -129,14 +145,10 @@
 
         // 4. This detects when the user scrolls to the bottom
         window.onscroll = () => {
-            if (isLoading) return; // Don't do anything if we're busy
-
-            // This checks if we are 500px from the bottom
+            if (isLoading) return; 
             if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 500) {
                 loadMoreGames();
             }
-            
-            // This is the original "Go to Top" button logic
             scrollFunction(); 
         };
 
