@@ -201,3 +201,16 @@ h1 {
 #goToTopBtn:hover {
     background-color: #3e3eff; 
 }
+
+
+
+/* --- NEW: Loader for Infinite Scroll --- */
+.loader-bottom-hidden {
+    display: none;
+}
+#loader-bottom {
+    text-align: center;
+    font-size: 18px;
+    color: #cccccc;
+    padding: 20px;
+}
