@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deva Tech Services</title>
+    <link rel="stylesheet" href="style-app.css"> 
+    <link rel="icon" type="image/png" href="https://images.seeklogo.com/logo-png/29/1/playstation-2-logo-png_seeklogo-298960.png">
+</head>
+<body> <nav id="mySidebar" class="sidebar">
+        <a href="javascript:void(0)" class="close-btn" onclick="closeNav()">&times;</a>
+        <div class="sidebar-header">
+            <h3>Menu</h3>
+        </div>
+        <ul class="nav-links">
+            <li><a href="index.html" class="nav-link active">Home</a></li>
+            <li><a href="pc.html" class="nav-link active">PC</a></li>
+            <li><a href="ps2.html" class="nav-link active">PS2</a></li>
+            <li><a href="ps3.html" class="nav-link active" >PS3</a></li>
+            <li><a href="ps4.html" class="nav-link active">PS4</a></li>
+            <li><a href="ps5.html" class="nav-link active">PS5</a></li>
+            <li><a href="#.html" class="nav-link active">XBOX</a></li>
+        </ul>
+    </nav>
+    
+    <div id="mainContent" class="main-content">
+        <button class="open-nav-btn" id="openNavBtn">&#9776;</button>
+
+        <div class="header">
+            <img src="https://images.seeklogo.com/logo-png/29/1/playstation-2-logo-png_seeklogo-298960.png" alt="PC Logo" class="logo">
+            <h1>XBOX Game Library</h1>
+        </div>
+
+        <input type="text" id="searchInput" oninput="filterGames()" placeholder="Search for a game...">
+        
+        <div id="loading">Loading Games... (This may take a moment)</div>
+        <div id="galleryContainer"></div>
+        <div id="loader-bottom" class="loader-bottom-hidden">Loading more...</div>
+        <div id="noResults" class="no-results-hidden">
+            <h2>No games found.</h2>
+            <p>Try searching for a different title.</p>
+        </div>
+        
+        <div class="page-nav"></div>
+    </div>
+    
+    <button onclick="scrollToTop()" id="goToTopBtn" title="Go to top">▲</button>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script>
+        
+        // --- JAVASCRIPT FOR "PUSH" MENU ---
+        // This is the correct, fast JS that matches your CSS
+        const bodyEl = document.body;
+        const openBtn = document.getElementById("openNavBtn");
+        const closeBtn = document.querySelector(".close-btn"); 
+        openBtn.onclick = openNav;
+        closeBtn.onclick = closeNav;
+        function openNav() { bodyEl.classList.add("sidebar-open"); }
+        function closeNav() { bodyEl.classList.remove("sidebar-open"); }
+        
+        
+        // --- *** HIGH-PERFORMANCE INFINITE SCROLL & SEARCH *** ---
+        
+        // *** 1. THIS IS THE ONLY PART YOU MUST FIX ***
+        // Open your pc.csv in Excel and write your *exact* headers here.
+        // I am 100% sure this is why your page is blank.
+        const HEADER_NAME = "GameName";
+        const HEADER_POSTER = "PosterLink";
+        // ------------------------------------------
+
+        let allGamesData = []; // Stores all 36,000+ games
+        let filteredGamesData = []; // Stores the *filtered* games
+        let currentPage = 1;
+        const gamesPerPage = 100; // Load 100 at a time
+        let isLoading = false;
+        
+        const galleryContainer = document.getElementById("galleryContainer");
+        const loadingMessage = document.getElementById("loading");
+        const loaderBottom = document.getElementById("loader-bottom");
+        const noResultsMessage = document.getElementById("noResults");
+        const searchInput = document.getElementById("searchInput");
+
+        // 2. Start by loading the CSV
+        Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vT4GO8L79gTk5QRLiPag0AWktZWMivO9Mc09hpd_v79Bm5sV3wp8BtoyB3WjxdzX9Lz5m6WEkfr3JvU/pub?gid=1542129268&single=true&output=csv", {
+            download: true,
+            header: true, 
+            skipEmptyLines: true, 
+            complete: function(results) {
+                loadingMessage.style.display = "none";
+                allGamesData = results.data;
+                filteredGamesData = allGamesData;
+                loadMoreGames(); // Load the first 100 games
+                galleryContainer.style.opacity = 1; // Fade in
+            }
+        });
+
+        // 3. This function loads the *next* 100 games
+        function loadMoreGames() {
+            if (isLoading) return;
+            isLoading = true;
+            loaderBottom.classList.remove("loader-bottom-hidden");
+
+            const startIndex = (currentPage - 1) * gamesPerPage;
+            const endIndex = currentPage * gamesPerPage;
+            const gamesToLoad = filteredGamesData.slice(startIndex, endIndex);
+
+            // If there are no games to load (end of list), hide the loader
+            if (gamesToLoad.length === 0) {
+                loaderBottom.classList.add("loader-bottom-hidden");
+                isLoading = true; // Stop trying to load more
+                return;
+            }
+
+            let allCardsHTML = "";
+            gamesToLoad.forEach(game => {
+                
+                // This code now uses your variables from Step 1
+                const gameName = game[HEADER_NAME];
+                const posterUrl = game[HEADER_POSTER];
+                
+                if (gameName) {
+                    const encodedGameName = encodeURIComponent(gameName);
+                    const searchUrl = `https://www.google.com/search?q=${encodedGameName}`;
+                    
+                    allCardsHTML += `
+                        <div class="gameCard" onclick="window.open('${searchUrl}', '_blank')" title="Search for '${gameName}' on Google">
+                            <img src="${posterUrl}" alt="${gameName} Poster">
+                            <h3>${gameName}</h3>
+                        </div>
+                    `;
+                }
+            });
+
+            galleryContainer.innerHTML += allCardsHTML;
+            currentPage++;
+            isLoading = false;
+        }
+
+        // 4. NEW: High-performance JavaScript search
+        function filterGames() {
+            const filter = searchInput.value.toLowerCase();
+            
+            filteredGamesData = allGamesData.filter(game => {
+                // This checks if the game data exists
+                if (!game || !game[HEADER_NAME]) return false;
+                
+                // This uses your variable from Step 1
+                return game[HEADER_NAME].toLowerCase().includes(filter);
+            });
+            
+            // Show "No Results" message if the filtered list is empty
+            if (filteredGamesData.length === 0) {
+                noResultsMessage.classList.remove("no-results-hidden");
+            } else {
+                noResultsMessage.classList.add("no-results-hidden");
+            }
+            
+            currentPage = 1;
+            galleryContainer.innerHTML = ""; // Clear the gallery
+            loadMoreGames(); // Load the *first 100* of the filtered results
+        }
+
+        // 5. This detects when the user scrolls to the bottom
+        window.onscroll = () => {
+            if (isLoading) return; 
+            // Load when we are 800px from the bottom
+            if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 800) {
+                loadMoreGames();
+            }
+            scrollFunction(); 
+        };
+
+        // --- SCROLL-TO-TOP JAVASCRIPT ---
+        let mybutton = document.getElementById("goToTopBtn");
+        function scrollFunction() {
+          if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+            mybutton.style.opacity = "1";
+            mybutton.style.visibility = "visible";
+          } else {
+            mybutton.style.opacity = "0";
+            mybutton.style.visibility = "hidden";
+          }
+        }
+        function scrollToTop() {
+          window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+    </script>
+
+    <footer class="site-footer">
+        <p>&copy; 2025 Deva Tech Services. All Rights Reserved.</p>
+        <p>This is a personal project. All game titles and posters are trademarks of their respective owners.</p>
+    </footer>
+</body>
+</html>
