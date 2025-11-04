@@ -111,3 +111,17 @@ h1 {
 .sidebar-open .site-footer {
     margin-left: 250px;
 }
+
+/* --- NEW: WhatsApp Button Style --- */
+
+.whatsapp-button {
+    background-color: #25D366; /* Official WhatsApp Green */
+    border-color: #25D366;
+}
+
+.whatsapp-button:hover {
+    background-color: #1DAE54; /* A slightly darker green for hover */
+    border-color: #1DAE54;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
