@@ -120,11 +120,20 @@
                 const posterUrl = game[HEADER_POSTER];
                 
                 if (gameName) {
-                    const encodedGameName = encodeURIComponent(gameName);
-                    const searchUrl = `https://www.google.com/search?q=${encodedGameName}`;
+                    const searchQuery = gameName + " PS4 GamePlay"; 
                     
+                    // 2. URL-encode this new query
+                    const encodedSearchQuery = encodeURIComponent(searchQuery);
+                    
+                    // 3. Create the new YouTube search URL
+                    const searchUrl = `https://www.youtube.com/results?search_query=${encodedSearchQuery}`;
+                    
+                    // 4. Update the onclick and title attributes
                     allCardsHTML += `
-                        <div class="gameCard" onclick="window.open('${searchUrl}', '_blank')" title="Search for '${gameName}' on Google">
+                        <div class="gameCard" 
+                             onclick="window.open('${searchUrl}', '_blank')" 
+                             title="Open '${searchQuery}' on YouTube">
+                            
                             <img src="${posterUrl}" alt="${gameName} Poster">
                             <h3>${gameName}</h3>
                         </div>
