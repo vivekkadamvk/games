@@ -467,3 +467,47 @@ h1 {
     30%, 50%, 70% { transform: translate3d(-8px, 0, 0); }
     40%, 60% { transform: translate3d(8px, 0, 0); }
 }
+
+/* --- MOBILE & ANDROID OPTIMIZATIONS --- */
+
+/* Sidebar Backdrop Blur Overlay */
+.sidebar-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    z-index: 999; /* Just below the sidebar */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+    backdrop-filter: blur(4px);
+}
+.sidebar-open .sidebar-overlay {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Android & Mobile Media Query */
+@media (max-width: 768px) {
+    .controls-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    .controls-actions {
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+    .controls-actions select, .controls-actions button {
+        flex: 1 1 30%; /* Let items stretch to fill space */
+        min-height: 44px; /* Native Android Touch Target Size */
+        font-size: 0.95rem;
+    }
+    #galleryContainer {
+        /* Smart math to prevent Large Grids from breaking small mobile screens */
+        grid-template-columns: repeat(auto-fill, minmax(min(var(--grid-size), 45%), 1fr));
+        gap: 12px;
+    }
+    .gameCard:hover {
+        transform: translateY(-4px) scale(1.02); /* Less aggressive pop on mobile */
+    }
+}

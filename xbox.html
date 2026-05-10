@@ -5,11 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deva Gaming Services - XBOX</title>
     <meta name="description" content="Browse our extensive XBOX Game Library. Search through 3,000+ XBOX games, view posters, and find gameplay videos.">
+    
+    <!-- Mobile App Settings for Android -->
+    <meta name="theme-color" content="#0d0d5b">
+    <meta name="mobile-web-app-capable" content="yes">
+    
     <link rel="stylesheet" href="style-app.css"> 
     <link rel="icon" type="image/png" href="https://wallpapers.com/images/high/xbox-logo-icon-brt64s7zvwsixxl1.png">
 </head>
 <body> 
-    <div id="scrollProgressBar"></div><nav id="mySidebar" class="sidebar">
+    <div id="scrollProgressBar"></div>
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="closeNav()"></div>
+    <nav id="mySidebar" class="sidebar">
         <a href="javascript:void(0)" class="close-btn" onclick="closeNav()">&times;</a>
         <div class="sidebar-header">
             <h3>Menu</h3>
@@ -139,6 +146,9 @@
 
         // --- Custom Ripple Effect ---
         function createRipple(event, element) {
+            // Trigger Android haptic vibration (light 50ms tap)
+            if (navigator.vibrate) navigator.vibrate(50);
+            
             const circle = document.createElement("span");
             const diameter = Math.max(element.clientWidth, element.clientHeight);
             const radius = diameter / 2;
@@ -168,6 +178,9 @@
 
         // --- Play Random Game ---
         function playRandomGame() {
+            // Trigger Android haptic vibration (slightly longer 80ms buzz)
+            if (navigator.vibrate) navigator.vibrate(80);
+            
             if (filteredGamesData.length === 0) return;
             const randomIndex = Math.floor(Math.random() * filteredGamesData.length);
             const game = filteredGamesData[randomIndex];
