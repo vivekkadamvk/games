@@ -410,6 +410,13 @@
             const progressBar = document.getElementById("scrollProgressBar");
             if (progressBar) progressBar.style.width = (height > 0 ? (winScroll / height) * 100 : 0) + "%";
 
+            // --- MOBILE SCROLL COLLAPSE ---
+            const controls = document.querySelector('.controls-container');
+            if (controls) {
+                if (winScroll > 80) controls.classList.add('is-scrolled');
+                else controls.classList.remove('is-scrolled');
+            }
+
             if (isLoading) return; 
             // Load when we are 800px from the bottom
             if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 800) {

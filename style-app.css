@@ -520,4 +520,14 @@ h1 {
         height: 32px;
         margin-right: 10px;
     }
+
+    /* Collapse features on scroll for mobile */
+    .controls-container.is-scrolled .chip-container,
+    .controls-container.is-scrolled .controls-actions {
+        display: none !important;
+    }
+    .controls-container.is-scrolled {
+        padding: 10px 15px;
+        gap: 8px;
+    }
 }

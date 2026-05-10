@@ -45,8 +45,16 @@
         </div>
 
         <div class="controls-container">
-            <div class="ncontainer">
-                <button class="chip" onclick="applyQuickFilter('Spider-Man')">Spider-Man</button>
+            <div class="search-wrapper">
+                <input type="text" id="searchInput" list="searchHistoryList" oninput="debouncedFilterGames()" placeholder="Search for a PS5 game... (Press '/' to focus)">
+                <datalist id="searchHistoryList"></datalist>
+                <div class="search-icons">
+                    <button id="micBtn" class="mic-btn" onclick="startVoiceSearch()" title="Voice Search (Requires Microphone)">🎤</button>
+                    <span class="clear-btn" id="clearBtn" onclick="clearSearch()" title="Clear search">&times;</span>
+                </div>
+            </div>
+            <div class="chip-container">
+                <button class="chip" onclick="applyQuickFilter('Spider Man')">Spider Man</button>
                 <button class="chip" onclick="applyQuickFilter('God of War')">God of War</button>
                 <button class="chip" onclick="applyQuickFilter('Horizon')">Horizon</button>
                 <button class="chip" onclick="applyQuickFilter('Ratchet')">Ratchet & Clank</button>
@@ -342,6 +350,13 @@
             const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
             const progressBar = document.getElementById("scrollProgressBar");
             if (progressBar) progressBar.style.width = (height > 0 ? (winScroll / height) * 100 : 0) + "%";
+
+            // --- MOBILE SCROLL COLLAPSE ---
+            const controls = document.querySelector('.controls-container');
+            if (controls) {
+                if (winScroll > 80) controls.classList.add('is-scrolled');
+                else controls.classList.remove('is-scrolled');
+            }
 
             if (isLoading) return; 
             // Load when we are 800px from the bottom
