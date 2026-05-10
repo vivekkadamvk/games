@@ -510,4 +510,14 @@ h1 {
     .gameCard:hover {
         transform: translateY(-4px) scale(1.02); /* Less aggressive pop on mobile */
     }
+
+    /* Fix header wrapping on small mobile/Android screens */
+    .header h1 {
+        font-size: 1.4rem;
+        white-space: nowrap;
+    }
+    .header .logo {
+        height: 32px;
+        margin-right: 10px;
+    }
 }

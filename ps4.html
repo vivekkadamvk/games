@@ -5,10 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Deva Gaming Services - PS4</title>
     <meta name="description" content="Browse our extensive PS4 Game Library. Search through 6,200+ PS4 games, view posters, and find gameplay videos.">
+    
+    <!-- Mobile App Settings for Android -->
+    <meta name="theme-color" content="#0d0d5b">
+    <meta name="mobile-web-app-capable" content="yes">
+    
     <link rel="stylesheet" href="style-app.css"> 
     <link rel="icon" type="image/png" href="https://images.seeklogo.com/logo-png/29/1/playstation-2-logo-png_seeklogo-298960.png">
 </head>
-<body> <nav id="mySidebar" class="sidebar">
+<body> 
+    <div id="scrollProgressBar"></div>
+    <div id="sidebarOverlay" class="sidebar-overlay" onclick="closeNav()"></div>
+    <nav id="mySidebar" class="sidebar">
         <a href="javascript:void(0)" class="close-btn" onclick="closeNav()">&times;</a>
         <div class="sidebar-header">
             <h3>Menu</h3>
@@ -36,15 +44,66 @@
             <h1>PS4 Game Library</h1>
         </div>
 
-        <input type="text" id="searchInput" oninput="filterGames()" placeholder="Search for a game...">
-        
-        <div id="loading">Loading Games... (This may take a moment)</div>
+        <div class="controls-container">
+            <div class="top-tools-row">
+                <span id="greetingText">Welcome, Gamer!</span>
+                <div style="display:flex; gap:15px; align-items:center;">
+                    <span id="libraryValuation" class="library-valuation">Est. Value: $0</span>
+                    <span class="nav-pill" onclick="installPWA()" title="Install Native App">📲 Install</span>
+                    <span class="nav-pill" onclick="alert('Updates: 50+ new PS4 games added today!')">🔔 <span class="notif-badge">1</span></span>
+                </div>
+            </div>
+            <div class="search-wrapper">
+                <input type="text" id="searchInput" list="searchHistoryList" oninput="debouncedFilterGames()" placeholder="Search for a PS4 game... (Press '/' to focus)">
+                <datalist id="searchHistoryList"></datalist>
+                <div class="search-icons">
+                    <button id="micBtn" class="mic-btn" onclick="startVoiceSearch()" title="Voice Search (Requires Microphone)">🎤</button>
+                    <span class="clear-btn" id="clearBtn" onclick="clearSearch()" title="Clear search">&times;</span>
+                </div>
+            </div>
+            <div class="chip-container">
+                <button class="chip" onclick="applyQuickFilter('Spider-Man')">Spider-Man</button>
+                <button class="chip" onclick="applyQuickFilter('God of War')">God of War</button>
+                <button class="chip" onclick="applyQuickFilter('Uncharted')">Uncharted</button>
+                <button class="chip" onclick="applyQuickFilter('Call of Duty')">CoD</button>
+                <button class="chip" onclick="applyQuickFilter('Horizon')">Horizon</button>
+                <button class="chip" onclick="applyQuickFilter('Ghost')">Ghost of Tsushima</button>
+            </div>
+            <div class="controls-row">
+                <span id="gameCount">Initializing library...</span>
+                <div class="controls-actions">
+                    <button class="random-btn" onclick="playRandomGame()" title="Play a Random Game">🎲 Random</button>
+                    <select id="gridSelect" class="sort-select" onchange="changeGridSize()" title="Grid Size">
+                        <option value="150px">Medium Grid</option>
+                        <option value="120px">Small Grid</option>
+                        <option value="220px">Large Grid</option>
+                    </select>
+                    <select id="sortSelect" class="sort-select" onchange="filterGames()" title="Sort Games">
+                        <option value="default">Default Order</option>
+                        <option value="az">A to Z</option>
+                        <option value="za">Z to A</option>
+                    </select>
+                    <button id="favBtn" class="business-btn" onclick="toggleFavoritesView()" title="View Wishlist">❤️ Favs</button>
+                    <button id="dsBtn" class="business-btn" onclick="toggleDataSaver()" title="Disable Images">📶 Lite</button>
+                    <button id="oledBtn" class="business-btn" onclick="toggleOled()" title="True Black">🌒 OLED</button>
+                    <button id="asBtn" class="business-btn" onclick="toggleAutoScroll()" title="Presentation Mode">⏬ Auto</button>
+                    <label style="color:#fff; font-size:12px; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                        <input type="checkbox" id="exactMatch" onchange="filterGames()"> Exact
+                    </label>
+                </div>
+            </div>
+        </div>
+
         <div id="galleryContainer"></div>
-        <div id="loader-bottom" class="loader-bottom-hidden">Loading more...</div>
+        <div id="loader-bottom" class="loader-bottom-hidden">
+            <div class="spinner"></div>
+            Loading more...
+        </div>
         <div id="noResults" class="no-results-hidden">
             <h2>No games found.</h2>
             <p>Try searching for a different title.</p>
         </div>
+        <div id="endToast" class="toast">You've reached the end of the list!</div>
         
         <div class="page-nav"></div>
     </div>
@@ -81,10 +140,130 @@
         let isLoading = false;
         
         const galleryContainer = document.getElementById("galleryContainer");
-        const loadingMessage = document.getElementById("loading");
         const loaderBottom = document.getElementById("loader-bottom");
         const noResultsMessage = document.getElementById("noResults");
         const searchInput = document.getElementById("searchInput");
+        const gameCountDisplay = document.getElementById("gameCount");
+        const clearBtn = document.getElementById("clearBtn");
+
+        function showSkeletons() {
+            let skeletons = '';
+            for(let i=0; i<20; i++) {
+                skeletons += `<div class="skeleton-card"><div class="skeleton-img"></div><div class="skeleton-text"></div></div>`;
+            }
+            galleryContainer.innerHTML = skeletons;
+            galleryContainer.style.opacity = 1;
+        }
+
+        function clearSearch() { searchInput.value = ""; filterGames(); searchInput.focus(); }
+
+        function createRipple(event, element) {
+            if (navigator.vibrate) navigator.vibrate(50);
+            const gameName = element.getAttribute("data-name");
+            if (gameName) { localStorage.setItem("ps4_last_played", gameName); trackAnalytics("Played Game", gameName); }
+            const circle = document.createElement("span");
+            const diameter = Math.max(element.clientWidth, element.clientHeight);
+            const radius = diameter / 2;
+            const rect = element.getBoundingClientRect();
+            circle.style.width = circle.style.height = `${diameter}px`;
+            circle.style.left = `${event.clientX - rect.left - radius}px`;
+            circle.style.top = `${event.clientY - rect.top - radius}px`;
+            circle.classList.add("ripple");
+            const existingRipple = element.querySelector(".ripple");
+            if (existingRipple) existingRipple.remove();
+            element.appendChild(circle);
+        }
+
+        function startVoiceSearch() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) { alert("Your browser does not support voice search."); return; }
+            const recognition = new SpeechRecognition();
+            const micBtn = document.getElementById("micBtn");
+            recognition.onstart = () => { micBtn.classList.add("listening"); searchInput.placeholder = "Listening..."; };
+            recognition.onresult = (event) => { searchInput.value = event.results[0][0].transcript; filterGames(); };
+            recognition.onend = () => { micBtn.classList.remove("listening"); searchInput.placeholder = "Search for a PS4 game... (Press '/' to focus)"; };
+            recognition.start();
+        }
+
+        function playRandomGame() {
+            if (navigator.vibrate) navigator.vibrate(80);
+            if (filteredGamesData.length === 0) return;
+            const randomIndex = Math.floor(Math.random() * filteredGamesData.length);
+            const game = filteredGamesData[randomIndex];
+            const searchQuery = encodeURIComponent(game[HEADER_NAME] + " PS4 GamePlay");
+            window.open(`https://www.youtube.com/results?search_query=${searchQuery}`, '_blank');
+        }
+
+        function changeGridSize() { document.getElementById('galleryContainer').style.setProperty('--grid-size', document.getElementById('gridSelect').value); }
+        document.addEventListener('keydown', (e) => { if (e.key === '/' && document.activeElement !== searchInput) { e.preventDefault(); searchInput.focus(); } });
+        
+        function updateGreeting() {
+            const hour = new Date().getHours();
+            let msg = "Good Evening";
+            if (hour < 12) msg = "Good Morning";
+            else if (hour < 18) msg = "Good Afternoon";
+            document.getElementById("greetingText").innerText = `${msg}, Gamer!`;
+        }
+        updateGreeting();
+        function trackAnalytics(event, data) { console.log(`[ANALYTICS] ${event}:`, data); }
+
+        let wishlist = JSON.parse(localStorage.getItem('ps4_wishlist')) || [];
+        let viewingFavorites = false;
+        function toggleFav(gameName) {
+            if (wishlist.includes(gameName)) { wishlist = wishlist.filter(g => g !== gameName); trackAnalytics("Removed Fav", gameName); } 
+            else { wishlist.push(gameName); trackAnalytics("Added Fav", gameName); }
+            localStorage.setItem('ps4_wishlist', JSON.stringify(wishlist));
+            if (viewingFavorites) filterGames(); else loadMoreGames(true); 
+        }
+        function toggleFavoritesView() {
+            viewingFavorites = !viewingFavorites; trackAnalytics("Toggled Favorites View", viewingFavorites);
+            document.getElementById("favBtn").classList.toggle("active", viewingFavorites);
+            filterGames();
+        }
+
+        let isDataSaver = false;
+        function toggleDataSaver() {
+            isDataSaver = !isDataSaver; trackAnalytics("Toggled Data Saver", isDataSaver);
+            document.getElementById("dsBtn").classList.toggle("active", isDataSaver);
+            galleryContainer.innerHTML = ""; currentPage = 1; isLoading = false; loadMoreGames();
+        }
+
+        function toggleOled() { document.body.classList.toggle('oled-mode'); trackAnalytics("Toggled OLED Mode", document.body.classList.contains('oled-mode')); }
+
+        const contextMenu = document.getElementById("customContextMenu");
+        let contextData = { game: null, url: null };
+        function showContextMenu(e, gameName, url) {
+            e.preventDefault(); contextData = { game: gameName, url: url };
+            const menu = document.getElementById("customContextMenu");
+            menu.style.display = "flex"; menu.style.left = e.pageX + "px"; menu.style.top = e.pageY + "px";
+            trackAnalytics("Context Menu", gameName);
+        }
+        document.addEventListener("click", () => { if(document.getElementById("customContextMenu")) document.getElementById("customContextMenu").style.display = "none"; });
+        function contextPlay() { if (contextData.url) window.open(contextData.url, '_blank'); }
+        function contextFav() { if (contextData.game) toggleFav(contextData.game); }
+
+        document.addEventListener('keydown', (e) => {
+            if (!["ArrowRight", "ArrowLeft", "ArrowDown", "ArrowUp"].includes(e.key)) return;
+            const active = document.activeElement; if (!active || !active.classList.contains("gameCard")) return;
+            e.preventDefault(); const cards = Array.from(document.querySelectorAll('.gameCard'));
+            const idx = cards.indexOf(active); const cols = Math.floor(galleryContainer.clientWidth / active.clientWidth);
+            let nextIdx = idx;
+            if (e.key === "ArrowRight") nextIdx = idx + 1; if (e.key === "ArrowLeft") nextIdx = idx - 1;
+            if (e.key === "ArrowDown") nextIdx = idx + cols; if (e.key === "ArrowUp") nextIdx = idx - cols;
+            if (cards[nextIdx]) cards[nextIdx].focus();
+        });
+
+        let autoScrollInterval = null;
+        function toggleAutoScroll() {
+            if (autoScrollInterval) { clearInterval(autoScrollInterval); autoScrollInterval = null; document.getElementById("asBtn").classList.remove("active"); } 
+            else { autoScrollInterval = setInterval(() => window.scrollBy(0, 2), 20); document.getElementById("asBtn").classList.add("active"); }
+        }
+
+        function applyQuickFilter(term) { searchInput.value = term; trackAnalytics("Quick Filter", term); filterGames(); }
+        function updateValuation() { document.getElementById("libraryValuation").innerText = `Est. Value: $${(filteredGamesData.length * 59.99).toLocaleString()}`; }
+        function installPWA() { trackAnalytics("Install PWA Clicked", true); alert('Native App Installation Prompt Initialized...'); }
+
+        showSkeletons();
 
         // 2. Start by loading the CSV
         Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vT4GO8L79gTk5QRLiPag0AWktZWMivO9Mc09hpd_v79Bm5sV3wp8BtoyB3WjxdzX9Lz5m6WEkfr3JvU/pub?gid=483311434&single=true&output=csv", {
@@ -92,17 +271,14 @@
             header: true, 
             skipEmptyLines: true, 
             complete: function(results) {
-                loadingMessage.style.display = "none";
                 allGamesData = results.data;
-                filteredGamesData = allGamesData;
-                loadMoreGames(); // Load the first 100 games
-                galleryContainer.style.opacity = 1; // Fade in
+                filterGames(); 
             }
         });
 
         // 3. This function loads the *next* 100 games
-        function loadMoreGames() {
-            if (isLoading) return;
+        function loadMoreGames(softRefresh = false) {
+            if (isLoading && !softRefresh) return;
             isLoading = true;
             loaderBottom.classList.remove("loader-bottom-hidden");
 
@@ -114,10 +290,17 @@
             if (gamesToLoad.length === 0) {
                 loaderBottom.classList.add("loader-bottom-hidden");
                 isLoading = true; // Stop trying to load more
+                if (filteredGamesData.length > 0) {
+                    const toast = document.getElementById("endToast");
+                    toast.classList.add("show");
+                    setTimeout(() => toast.classList.remove("show"), 3000);
+                }
                 return;
             }
 
             let allCardsHTML = "";
+            let delayIndex = 0;
+            const lastPlayed = localStorage.getItem("ps4_last_played");
             gamesToLoad.forEach(game => {
                 
                 // This code now uses your variables from Step 1
@@ -126,48 +309,92 @@
                 
                 if (gameName) {
                     const searchQuery = gameName + " PS4 GamePlay"; 
-                    
-                    // 2. URL-encode this new query
                     const encodedSearchQuery = encodeURIComponent(searchQuery);
-                    
-                    // 3. Create the new YouTube search URL
                     const searchUrl = `https://www.youtube.com/results?search_query=${encodedSearchQuery}`;
                     
-                    // 4. Update the onclick and title attributes
+                    const isFav = wishlist.includes(gameName);
+                    const isLast = lastPlayed === gameName;
+                    const isHot = Math.random() > 0.95;
+
                     allCardsHTML += `
-                        <div class="gameCard" 
-                             onclick="window.open('${searchUrl}', '_blank')" 
+                        <div class="gameCard fade-up"
+                             style="animation-delay: ${delayIndex * 30}ms; ${isLast ? 'border: 2px solid #00e5ff; box-shadow: 0 0 15px rgba(0,229,255,0.4);' : ''}"
+                             tabindex="0"
+                             data-name="${gameName.replace(/"/g, '&quot;')}"
+                             oncontextmenu="showContextMenu(event, '${gameName.replace(/'/g, "\\'")}', '${searchUrl}')"
+                             onclick="createRipple(event, this); window.open('${searchUrl}', '_blank');" 
+                             onkeypress="if(event.key === 'Enter') { createRipple(event, this); window.open('${searchUrl}', '_blank'); }"
                              title="Open '${searchQuery}' on YouTube">
                             
-                            <img src="${posterUrl}" alt="${gameName} Poster">
+                            ${isHot ? '<span class="new-badge">🔥 HOT</span>' : ''}
+                            <div class="card-actions">
+                                <button onclick="event.stopPropagation(); toggleFav('${gameName.replace(/'/g, "\\'")}')" class="icon-btn ${isFav ? 'active' : ''}" title="Toggle Wishlist">${isFav ? '❤️' : '🤍'}</button>
+                            </div>
+                            <div class="play-overlay"></div>
+                            ${isDataSaver ? '<div class="data-saver-placeholder">IMG DISABLED<br>(Data Saver)</div>' : `<img src="${posterUrl}" alt="${gameName} Poster" loading="lazy" onerror="this.onerror=null; this.src='https://i0.wp.com/www.fontshut.com/wp-content/uploads/2022/03/ps4ss-logo.jpg?resize=1024%2C576&ssl=1';">`}
                             <h3>${gameName}</h3>
                         </div>
                     `;
+                    delayIndex++;
                 }
             });
 
-            galleryContainer.innerHTML += allCardsHTML;
+            if(softRefresh) { galleryContainer.innerHTML = allCardsHTML; } else { galleryContainer.innerHTML += allCardsHTML; }
             currentPage++;
             isLoading = false;
         }
 
+        function debounce(func, delay) {
+            let timeoutId;
+            return function (...args) {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => {
+                    func.apply(this, args);
+                    let sHistory = JSON.parse(localStorage.getItem('ps4_search_history')) || [];
+                    const val = searchInput.value.trim();
+                    if (val && !sHistory.includes(val)) {
+                        sHistory.unshift(val); if (sHistory.length > 5) sHistory.pop();
+                        localStorage.setItem('ps4_search_history', JSON.stringify(sHistory));
+                        document.getElementById("searchHistoryList").innerHTML = sHistory.map(s => `<option value="${s}">`).join('');
+                    }
+                }, delay);
+            };
+        }
+        const debouncedFilterGames = debounce(filterGames, 300);
+        document.getElementById("searchHistoryList").innerHTML = (JSON.parse(localStorage.getItem('ps4_search_history')) || []).map(s => `<option value="${s}">`).join('');
+
         // 4. NEW: High-performance JavaScript search
         function filterGames() {
+            const exact = document.getElementById("exactMatch")?.checked;
             const filter = searchInput.value.toLowerCase();
             
-            filteredGamesData = allGamesData.filter(game => {
+            let baseData = viewingFavorites ? allGamesData.filter(g => wishlist.includes(g[HEADER_NAME])) : allGamesData;
+            
+            filteredGamesData = baseData.filter(game => {
                 // This checks if the game data exists
                 if (!game || !game[HEADER_NAME]) return false;
                 
-                // This uses your variable from Step 1
-                return game[HEADER_NAME].toLowerCase().includes(filter);
+                const name = game[HEADER_NAME].toLowerCase();
+                return exact ? name === filter : name.includes(filter);
             });
             
+            const sortVal = document.getElementById("sortSelect").value;
+            if (sortVal === "az") { filteredGamesData.sort((a, b) => (a[HEADER_NAME] || "").localeCompare(b[HEADER_NAME] || "")); } 
+            else if (sortVal === "za") { filteredGamesData.sort((a, b) => (b[HEADER_NAME] || "").localeCompare(a[HEADER_NAME] || "")); }
+
+            clearBtn.style.display = filter.length > 0 ? "block" : "none";
+            gameCountDisplay.innerText = `Showing ${filteredGamesData.length} games`;
+            updateValuation();
+
             // Show "No Results" message if the filtered list is empty
             if (filteredGamesData.length === 0) {
                 noResultsMessage.classList.remove("no-results-hidden");
+                noResultsMessage.classList.remove("shake");
+                void noResultsMessage.offsetWidth; 
+                noResultsMessage.classList.add("shake");
             } else {
                 noResultsMessage.classList.add("no-results-hidden");
+                noResultsMessage.classList.remove("shake");
             }
             
             currentPage = 1;
@@ -178,6 +405,11 @@
 
         // 5. This detects when the user scrolls to the bottom
         window.onscroll = () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const progressBar = document.getElementById("scrollProgressBar");
+            if (progressBar) progressBar.style.width = (height > 0 ? (winScroll / height) * 100 : 0) + "%";
+
             if (isLoading) return; 
             // Load when we are 800px from the bottom
             if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 800) {
@@ -203,8 +435,13 @@
     </script>
 
     <footer class="site-footer">
-        <p>&copy; 2025 Deva Gaming Services. All Rights Reserved.</p>
+        <p>&copy; 2026 Deva Gaming Services. All Rights Reserved.</p>
         <p>This is a personal project. All game titles and posters are trademarks of their respective owners.</p>
     </footer>
+    <!-- Feature 10: Custom Context Menu -->
+    <div id="customContextMenu" class="custom-context-menu">
+        <button onclick="contextPlay()">▶ Play on YouTube</button>
+        <button onclick="contextFav()">❤️ Toggle Wishlist</button>
+    </div>
 </body>
 </html>
