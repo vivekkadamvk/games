@@ -386,3 +386,84 @@ h1 {
     font-weight: bold;
 }
 .toast.show { bottom: 30px; }
+
+/* --- VERY HIGH LEVEL 10 FEATURES --- */
+
+/* 1. Custom Webkit Scrollbar */
+::-webkit-scrollbar { width: 12px; }
+::-webkit-scrollbar-track { background: #000020; }
+::-webkit-scrollbar-thumb { background: #3e3eff; border-radius: 6px; border: 3px solid #000020; }
+::-webkit-scrollbar-thumb:hover { background: #00e5ff; }
+
+/* 2. Scroll Progress Bar */
+#scrollProgressBar {
+    position: fixed; top: 0; left: 0; height: 4px;
+    background: #00e5ff; width: 0%; z-index: 9999;
+    box-shadow: 0 0 15px #00e5ff, 0 0 5px #00e5ff;
+    transition: width 0.1s ease-out;
+    pointer-events: none;
+}
+
+/* 3. Parallax Floating Header */
+.header .logo {
+    animation: floatLogo 4s ease-in-out infinite;
+    filter: drop-shadow(0 0 10px rgba(0,229,255,0.4));
+}
+@keyframes floatLogo { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+/* 4. Action Row & Grid Control */
+.controls-actions { display: flex; gap: 10px; align-items: center; }
+.random-btn {
+    background: linear-gradient(45deg, #ff3e3e, #ff007f);
+    color: white; border: none; padding: 6px 12px; border-radius: 6px;
+    cursor: pointer; font-weight: bold; transition: transform 0.2s, box-shadow 0.2s;
+}
+.random-btn:hover { transform: translateY(-2px) scale(1.05); box-shadow: 0 4px 15px rgba(255,62,62,0.5); }
+
+#galleryContainer {
+    --grid-size: 150px;
+    grid-template-columns: repeat(auto-fill, minmax(var(--grid-size), 1fr));
+    transition: grid-template-columns 0.4s ease;
+}
+
+/* 5. Voice Search & Expanded Search Bar */
+#searchInput { padding-right: 80px; }
+.search-icons {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    display: flex; gap: 8px; align-items: center;
+}
+.mic-btn {
+    background: none; border: none; font-size: 18px; color: #999;
+    cursor: pointer; transition: color 0.3s, transform 0.2s; padding: 0;
+}
+.mic-btn:hover { color: #00e5ff; transform: scale(1.1); }
+.mic-btn.listening { color: #ff3e3e; animation: pulseMic 1s infinite; }
+@keyframes pulseMic { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
+.clear-btn { position: static; transform: none; right: auto; top: auto; font-size: 22px; }
+
+/* 6. Staggered Fade-Up */
+.fade-up {
+    opacity: 0; transform: translateY(40px);
+    animation: fadeUpAnim 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+@keyframes fadeUpAnim { to { opacity: 1; transform: translateY(0); } }
+
+/* 7. 3D Hover & Glow Override */
+.gameCard { position: relative; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease; }
+.gameCard:hover { transform: translateY(-8px) scale(1.03); box-shadow: 0 15px 30px rgba(0, 229, 255, 0.2), 0 0 15px rgba(62,62,255,0.4); z-index: 2; }
+
+/* 8. Interactive Material Ripple */
+.ripple {
+    position: absolute; border-radius: 50%; transform: scale(0);
+    animation: rippleAnim 0.6s ease-out; background-color: rgba(255, 255, 255, 0.5); pointer-events: none;
+}
+@keyframes rippleAnim { to { transform: scale(4); opacity: 0; } }
+
+/* 9. Shake Animation for No Results */
+.shake { animation: shakeAnim 0.5s cubic-bezier(.36,.07,.19,.97) both; color: #ff3e3e !important; }
+@keyframes shakeAnim {
+    10%, 90% { transform: translate3d(-2px, 0, 0); }
+    20%, 80% { transform: translate3d(4px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-8px, 0, 0); }
+    40%, 60% { transform: translate3d(8px, 0, 0); }
+}

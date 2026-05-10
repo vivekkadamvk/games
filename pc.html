@@ -172,6 +172,7 @@
             }
             
             currentPage = 1;
+            isLoading = false; // Reset loading state so the next batch can load
             galleryContainer.innerHTML = ""; // Clear the gallery
             loadMoreGames(); // Load the *first 100* of the filtered results
         }

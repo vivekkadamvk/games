@@ -8,7 +8,8 @@
     <link rel="stylesheet" href="style-app.css"> 
     <link rel="icon" type="image/png" href="https://wallpapers.com/images/high/xbox-logo-icon-brt64s7zvwsixxl1.png">
 </head>
-<body> <nav id="mySidebar" class="sidebar">
+<body> 
+    <div id="scrollProgressBar"></div><nav id="mySidebar" class="sidebar">
         <a href="javascript:void(0)" class="close-btn" onclick="closeNav()">&times;</a>
         <div class="sidebar-header">
             <h3>Menu</h3>
@@ -38,16 +39,27 @@
 
         <div class="controls-container">
             <div class="search-wrapper">
-                <input type="text" id="searchInput" oninput="debouncedFilterGames()" placeholder="Search for an XBOX game...">
-                <span class="clear-btn" id="clearBtn" onclick="clearSearch()" title="Clear search">&times;</span>
+                <input type="text" id="searchInput" oninput="debouncedFilterGames()" placeholder="Search for an XBOX game... (Press '/' to focus)">
+                <div class="search-icons">
+                    <button id="micBtn" class="mic-btn" onclick="startVoiceSearch()" title="Voice Search (Requires Microphone)">🎤</button>
+                    <span class="clear-btn" id="clearBtn" onclick="clearSearch()" title="Clear search">&times;</span>
+                </div>
             </div>
             <div class="controls-row">
                 <span id="gameCount">Initializing library...</span>
-                <select id="sortSelect" class="sort-select" onchange="filterGames()" title="Sort Games">
-                    <option value="default">Default Order</option>
-                    <option value="az">A to Z</option>
-                    <option value="za">Z to A</option>
-                </select>
+                <div class="controls-actions">
+                    <button class="random-btn" onclick="playRandomGame()" title="Play a Random Game">🎲 Random</button>
+                    <select id="gridSelect" class="sort-select" onchange="changeGridSize()" title="Grid Size">
+                        <option value="150px">Medium Grid</option>
+                        <option value="120px">Small Grid</option>
+                        <option value="220px">Large Grid</option>
+                    </select>
+                    <select id="sortSelect" class="sort-select" onchange="filterGames()" title="Sort Games">
+                        <option value="default">Default Order</option>
+                        <option value="az">A to Z</option>
+                        <option value="za">Z to A</option>
+                    </select>
+                </div>
             </div>
         </div>
 
@@ -125,6 +137,54 @@
             searchInput.focus();
         }
 
+        // --- Custom Ripple Effect ---
+        function createRipple(event, element) {
+            const circle = document.createElement("span");
+            const diameter = Math.max(element.clientWidth, element.clientHeight);
+            const radius = diameter / 2;
+            const rect = element.getBoundingClientRect();
+            circle.style.width = circle.style.height = `${diameter}px`;
+            circle.style.left = `${event.clientX - rect.left - radius}px`;
+            circle.style.top = `${event.clientY - rect.top - radius}px`;
+            circle.classList.add("ripple");
+            const existingRipple = element.querySelector(".ripple");
+            if (existingRipple) existingRipple.remove();
+            element.appendChild(circle);
+        }
+
+        // --- Voice Search API ---
+        function startVoiceSearch() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert("Your browser does not support voice search."); return;
+            }
+            const recognition = new SpeechRecognition();
+            const micBtn = document.getElementById("micBtn");
+            recognition.onstart = () => { micBtn.classList.add("listening"); searchInput.placeholder = "Listening..."; };
+            recognition.onresult = (event) => { searchInput.value = event.results[0][0].transcript; filterGames(); };
+            recognition.onend = () => { micBtn.classList.remove("listening"); searchInput.placeholder = "Search for an XBOX game... (Press '/' to focus)"; };
+            recognition.start();
+        }
+
+        // --- Play Random Game ---
+        function playRandomGame() {
+            if (filteredGamesData.length === 0) return;
+            const randomIndex = Math.floor(Math.random() * filteredGamesData.length);
+            const game = filteredGamesData[randomIndex];
+            const searchQuery = encodeURIComponent(game[HEADER_NAME] + " XBOX GamePlay");
+            window.open(`https://www.youtube.com/results?search_query=${searchQuery}`, '_blank');
+        }
+
+        // --- Dynamic Grid Size ---
+        function changeGridSize() {
+            document.getElementById('galleryContainer').style.setProperty('--grid-size', document.getElementById('gridSelect').value);
+        }
+
+        // --- Global Keyboard Shortcut '/' ---
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '/' && document.activeElement !== searchInput) { e.preventDefault(); searchInput.focus(); }
+        });
+
         showSkeletons();
 
         // 2. Start by loading the CSV
@@ -163,6 +223,7 @@
             }
 
             let allCardsHTML = "";
+            let delayIndex = 0;
             gamesToLoad.forEach(game => {
                 
                 // This code now uses your variables from Step 1
@@ -180,10 +241,11 @@
                     
                     // 4. Update the onclick and title attributes
                     allCardsHTML += `
-                        <div class="gameCard" 
+                        <div class="gameCard fade-up"
+                             style="animation-delay: ${delayIndex * 30}ms"
                              tabindex="0"
-                             onclick="window.open('${searchUrl}', '_blank')" 
-                             onkeypress="if(event.key === 'Enter') window.open('${searchUrl}', '_blank')"
+                             onclick="createRipple(event, this); window.open('${searchUrl}', '_blank')" 
+                             onkeypress="if(event.key === 'Enter') { createRipple(event, this); window.open('${searchUrl}', '_blank'); }"
                              title="Open '${searchQuery}' on YouTube">
                             
                             <div class="play-overlay"></div>
@@ -191,6 +253,7 @@
                             <h3>${gameName}</h3>
                         </div>
                     `;
+                    delayIndex++;
                 }
             });
 
@@ -238,17 +301,28 @@
             // Show "No Results" message if the filtered list is empty
             if (filteredGamesData.length === 0) {
                 noResultsMessage.classList.remove("no-results-hidden");
+                noResultsMessage.classList.remove("shake");
+                void noResultsMessage.offsetWidth; // Trigger reflow for animation
+                noResultsMessage.classList.add("shake");
             } else {
                 noResultsMessage.classList.add("no-results-hidden");
+                noResultsMessage.classList.remove("shake");
             }
             
             currentPage = 1;
+            isLoading = false; // Reset loading state so the next batch can load
             galleryContainer.innerHTML = ""; // Clear the gallery
             loadMoreGames(); // Load the *first 100* of the filtered results
         }
 
         // 5. This detects when the user scrolls to the bottom
         window.onscroll = () => {
+            // --- Scroll Progress Bar Update ---
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const progressBar = document.getElementById("scrollProgressBar");
+            if (progressBar) progressBar.style.width = (height > 0 ? (winScroll / height) * 100 : 0) + "%";
+
             if (isLoading) return; 
             // Load when we are 800px from the bottom
             if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 800) {
