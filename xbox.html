@@ -36,15 +36,31 @@
             <h1>XBOX Game Library</h1>
         </div>
 
-        <input type="text" id="searchInput" oninput="filterGames()" placeholder="Search for a game...">
-        
-        <div id="loading">Loading Games... (This may take a moment)</div>
+        <div class="controls-container">
+            <div class="search-wrapper">
+                <input type="text" id="searchInput" oninput="debouncedFilterGames()" placeholder="Search for an XBOX game...">
+                <span class="clear-btn" id="clearBtn" onclick="clearSearch()" title="Clear search">&times;</span>
+            </div>
+            <div class="controls-row">
+                <span id="gameCount">Initializing library...</span>
+                <select id="sortSelect" class="sort-select" onchange="filterGames()" title="Sort Games">
+                    <option value="default">Default Order</option>
+                    <option value="az">A to Z</option>
+                    <option value="za">Z to A</option>
+                </select>
+            </div>
+        </div>
+
         <div id="galleryContainer"></div>
-        <div id="loader-bottom" class="loader-bottom-hidden">Loading more...</div>
+        <div id="loader-bottom" class="loader-bottom-hidden">
+            <div class="spinner"></div>
+            Loading more...
+        </div>
         <div id="noResults" class="no-results-hidden">
             <h2>No games found.</h2>
             <p>Try searching for a different title.</p>
         </div>
+        <div id="endToast" class="toast">You've reached the end of the list!</div>
         
         <div class="page-nav"></div>
     </div>
@@ -81,10 +97,35 @@
         let isLoading = false;
         
         const galleryContainer = document.getElementById("galleryContainer");
-        const loadingMessage = document.getElementById("loading");
         const loaderBottom = document.getElementById("loader-bottom");
         const noResultsMessage = document.getElementById("noResults");
         const searchInput = document.getElementById("searchInput");
+        const gameCountDisplay = document.getElementById("gameCount");
+        const clearBtn = document.getElementById("clearBtn");
+
+        // --- Render Skeleton Loaders initially ---
+        function showSkeletons() {
+            let skeletons = '';
+            for(let i=0; i<20; i++) {
+                skeletons += `
+                    <div class="skeleton-card">
+                        <div class="skeleton-img"></div>
+                        <div class="skeleton-text"></div>
+                    </div>
+                `;
+            }
+            galleryContainer.innerHTML = skeletons;
+            galleryContainer.style.opacity = 1;
+        }
+
+        // --- Clear Search Function ---
+        function clearSearch() {
+            searchInput.value = "";
+            filterGames();
+            searchInput.focus();
+        }
+
+        showSkeletons();
 
         // 2. Start by loading the CSV
         Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vT4GO8L79gTk5QRLiPag0AWktZWMivO9Mc09hpd_v79Bm5sV3wp8BtoyB3WjxdzX9Lz5m6WEkfr3JvU/pub?gid=1542129268&single=true&output=csv", {
@@ -92,11 +133,8 @@
             header: true, 
             skipEmptyLines: true, 
             complete: function(results) {
-                loadingMessage.style.display = "none";
                 allGamesData = results.data;
-                filteredGamesData = allGamesData;
-                loadMoreGames(); // Load the first 100 games
-                galleryContainer.style.opacity = 1; // Fade in
+                filterGames(); // Initialize data, apply sorting, and load first batch
             }
         });
 
@@ -114,6 +152,13 @@
             if (gamesToLoad.length === 0) {
                 loaderBottom.classList.add("loader-bottom-hidden");
                 isLoading = true; // Stop trying to load more
+                
+                // Show "End of List" Toast
+                if (filteredGamesData.length > 0) {
+                    const toast = document.getElementById("endToast");
+                    toast.classList.add("show");
+                    setTimeout(() => toast.classList.remove("show"), 3000);
+                }
                 return;
             }
 
@@ -136,10 +181,13 @@
                     // 4. Update the onclick and title attributes
                     allCardsHTML += `
                         <div class="gameCard" 
+                             tabindex="0"
                              onclick="window.open('${searchUrl}', '_blank')" 
+                             onkeypress="if(event.key === 'Enter') window.open('${searchUrl}', '_blank')"
                              title="Open '${searchQuery}' on YouTube">
                             
-                            <img src="${posterUrl}" alt="${gameName} Poster">
+                            <div class="play-overlay"></div>
+                            <img src="${posterUrl}" alt="${gameName} Poster" loading="lazy" onerror="this.onerror=null; this.src='https://wallpapers.com/images/high/xbox-logo-icon-brt64s7zvwsixxl1.png';">
                             <h3>${gameName}</h3>
                         </div>
                     `;
@@ -150,6 +198,18 @@
             currentPage++;
             isLoading = false;
         }
+
+        // --- Debounce Function for Search ---
+        function debounce(func, delay) {
+            let timeoutId;
+            return function (...args) {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => {
+                    func.apply(this, args);
+                }, delay);
+            };
+        }
+        const debouncedFilterGames = debounce(filterGames, 300);
 
         // 4. NEW: High-performance JavaScript search
         function filterGames() {
@@ -163,6 +223,18 @@
                 return game[HEADER_NAME].toLowerCase().includes(filter);
             });
             
+        // --- Apply Sorting ---
+        const sortVal = document.getElementById("sortSelect").value;
+        if (sortVal === "az") {
+            filteredGamesData.sort((a, b) => (a[HEADER_NAME] || "").localeCompare(b[HEADER_NAME] || ""));
+        } else if (sortVal === "za") {
+            filteredGamesData.sort((a, b) => (b[HEADER_NAME] || "").localeCompare(a[HEADER_NAME] || ""));
+        }
+
+        // --- Update UI Controls ---
+        clearBtn.style.display = filter.length > 0 ? "block" : "none";
+        gameCountDisplay.innerText = `Showing ${filteredGamesData.length} games`;
+
             // Show "No Results" message if the filtered list is empty
             if (filteredGamesData.length === 0) {
                 noResultsMessage.classList.remove("no-results-hidden");
@@ -202,7 +274,7 @@
     </script>
 
     <footer class="site-footer">
-        <p>&copy; 2025 Deva Gaming Services. All Rights Reserved.</p>
+        <p>&copy; 2026 Deva Gaming Services. All Rights Reserved.</p>
         <p>This is a personal project. All game titles and posters are trademarks of their respective owners.</p>
     </footer>
 </body>
