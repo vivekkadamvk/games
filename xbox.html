@@ -45,16 +45,7 @@
         </div>
 
         <div class="controls-container">
-            <div class="top-tools-row">
-                <span id="greetingText">Welcome, Gamer!</span>
-                <div style="display:flex; gap:15px; align-items:center;">
-                    <span id="libraryValuation" class="library-valuation">Est. Value: $0</span>
-                    <span class="nav-pill" onclick="installPWA()" title="Install Native App">📲 Install</span>
-                    <span class="nav-pill" onclick="alert('Updates: 50+ new XBOX games added today!')">🔔 <span class="notif-badge">1</span></span>
-                </div>
-            </div>
             <div class="search-wrapper">
-                <input type="text" id="searchInput" oninput="debouncedFilterGames()" placeholder="Search for an XBOX game... (Press '/' to focus)">
                 <input type="text" id="searchInput" list="searchHistoryList" oninput="debouncedFilterGames()" placeholder="Search for an XBOX game... (Press '/' to focus)">
                 <datalist id="searchHistoryList"></datalist>
                 <div class="search-icons">
@@ -84,13 +75,7 @@
                         <option value="az">A to Z</option>
                         <option value="za">Z to A</option>
                     </select>
-                    <button id="favBtn" class="business-btn" onclick="toggleFavoritesView()" title="View Wishlist">❤️ Favs</button>
-                    <button id="dsBtn" class="business-btn" onclick="toggleDataSaver()" title="Disable Images">📶 Lite</button>
-                    <button id="oledBtn" class="business-btn" onclick="toggleOled()" title="True Black">🌒 OLED</button>
                     <button id="asBtn" class="business-btn" onclick="toggleAutoScroll()" title="Presentation Mode">⏬ Auto</button>
-                    <label style="color:#fff; font-size:12px; display:flex; align-items:center; gap:4px; cursor:pointer;">
-                        <input type="checkbox" id="exactMatch" onchange="filterGames()"> Exact
-                    </label>
                 </div>
             </div>
         </div>
@@ -232,44 +217,8 @@
 
         // --- 20 BUSINESS FEATURES IMPLEMENTATION ---
         
-        // 1. Personalized Greeting
-        function updateGreeting() {
-            const hour = new Date().getHours();
-            let msg = "Good Evening";
-            if (hour < 12) msg = "Good Morning";
-            else if (hour < 18) msg = "Good Afternoon";
-            document.getElementById("greetingText").innerText = `${msg}, Gamer!`;
-        }
-        updateGreeting();
-
         // 2 & 19. Business Intelligence Logger
         function trackAnalytics(event, data) { console.log(`[ANALYTICS] ${event}:`, data); }
-
-        // 3 & 4. Wishlist & Favorites
-        let wishlist = JSON.parse(localStorage.getItem('xbox_wishlist')) || [];
-        let viewingFavorites = false;
-        function toggleFav(gameName) {
-            if (wishlist.includes(gameName)) { wishlist = wishlist.filter(g => g !== gameName); trackAnalytics("Removed Fav", gameName); } 
-            else { wishlist.push(gameName); trackAnalytics("Added Fav", gameName); }
-            localStorage.setItem('xbox_wishlist', JSON.stringify(wishlist));
-            if (viewingFavorites) filterGames(); else loadMoreGames(true); // Soft refresh
-        }
-        function toggleFavoritesView() {
-            viewingFavorites = !viewingFavorites; trackAnalytics("Toggled Favorites View", viewingFavorites);
-            document.getElementById("favBtn").classList.toggle("active", viewingFavorites);
-            filterGames();
-        }
-
-        // 8. Data Saver Mode
-        let isDataSaver = false;
-        function toggleDataSaver() {
-            isDataSaver = !isDataSaver; trackAnalytics("Toggled Data Saver", isDataSaver);
-            document.getElementById("dsBtn").classList.toggle("active", isDataSaver);
-            galleryContainer.innerHTML = ""; currentPage = 1; isLoading = false; loadMoreGames();
-        }
-
-        // 9. OLED Dark Mode
-        function toggleOled() { document.body.classList.toggle('oled-mode'); trackAnalytics("Toggled OLED Mode", document.body.classList.contains('oled-mode')); }
 
         // 10. Custom Context Menu
         const contextMenu = document.getElementById("customContextMenu");
@@ -282,7 +231,6 @@
         }
         document.addEventListener("click", () => { if(document.getElementById("customContextMenu")) document.getElementById("customContextMenu").style.display = "none"; });
         function contextPlay() { if (contextData.url) window.open(contextData.url, '_blank'); }
-        function contextFav() { if (contextData.game) toggleFav(contextData.game); }
 
         // 11. Grid Arrow-Key Navigation
         document.addEventListener('keydown', (e) => {
@@ -306,12 +254,6 @@
         // 14. Quick-Filter AI Chips
         function applyQuickFilter(term) { searchInput.value = term; trackAnalytics("Quick Filter", term); filterGames(); }
 
-        // 17. Portfolio Valuation
-        function updateValuation() { document.getElementById("libraryValuation").innerText = `Est. Value: $${(filteredGamesData.length * 59.99).toLocaleString()}`; }
-
-        // 20. PWA Install Prompt
-        function installPWA() { trackAnalytics("Install PWA Clicked", true); alert('Native App Installation Prompt Initialized...'); }
-
         showSkeletons();
 
         // 2. Start by loading the CSV
@@ -326,8 +268,6 @@
         });
 
         // 3. This function loads the *next* 100 games
-        function loadMoreGames() {
-            if (isLoading) return;
         function loadMoreGames(softRefresh = false) {
             if (isLoading && !softRefresh) return;
             isLoading = true;
@@ -370,31 +310,21 @@
                     // 3. Create the new YouTube search URL
                     const searchUrl = `https://www.youtube.com/results?search_query=${encodedSearchQuery}`;
                     
-                    const isFav = wishlist.includes(gameName);
                     const isLast = lastPlayed === gameName;
-                    const isHot = Math.random() > 0.95; // Feature 6: Trending Badge
                     
                     // 4. Update the onclick and title attributes
                     allCardsHTML += `
                         <div class="gameCard fade-up"
-                             style="animation-delay: ${delayIndex * 30}ms"
                              style="animation-delay: ${delayIndex * 30}ms; ${isLast ? 'border: 2px solid #00e5ff; box-shadow: 0 0 15px rgba(0,229,255,0.4);' : ''}"
                              tabindex="0"
-                             onclick="createRipple(event, this); window.open('${searchUrl}', '_blank')" 
                              data-name="${gameName.replace(/"/g, '&quot;')}"
                              oncontextmenu="showContextMenu(event, '${gameName.replace(/'/g, "\\'")}', '${searchUrl}')"
                              onclick="createRipple(event, this); window.open('${searchUrl}', '_blank');" 
                              onkeypress="if(event.key === 'Enter') { createRipple(event, this); window.open('${searchUrl}', '_blank'); }"
                              title="Open '${searchQuery}' on YouTube">
                             
-                            ${isHot ? '<span class="new-badge">🔥 HOT</span>' : ''}
-                            <div class="card-actions">
-                                <button onclick="event.stopPropagation(); toggleFav('${gameName.replace(/'/g, "\\'")}')" class="icon-btn ${isFav ? 'active' : ''}" title="Toggle Wishlist">${isFav ? '❤️' : '🤍'}</button>
-                            </div>
-
                             <div class="play-overlay"></div>
                             <img src="${posterUrl}" alt="${gameName} Poster" loading="lazy" onerror="this.onerror=null; this.src='https://wallpapers.com/images/high/xbox-logo-icon-brt64s7zvwsixxl1.png';">
-                            ${isDataSaver ? '<div class="data-saver-placeholder">IMG DISABLED<br>(Data Saver)</div>' : `<img src="${posterUrl}" alt="${gameName} Poster" loading="lazy" onerror="this.onerror=null; this.src='https://wallpapers.com/images/high/xbox-logo-icon-brt64s7zvwsixxl1.png';">`}
                             <h3>${gameName}</h3>
                         </div>
                     `;
@@ -433,20 +363,14 @@
 
         // 4. NEW: High-performance JavaScript search
         function filterGames() {
-            const exact = document.getElementById("exactMatch")?.checked;
             const filter = searchInput.value.toLowerCase();
             
             filteredGamesData = allGamesData.filter(game => {
-            let baseData = viewingFavorites ? allGamesData.filter(g => wishlist.includes(g[HEADER_NAME])) : allGamesData;
-            
-            filteredGamesData = baseData.filter(game => {
                 // This checks if the game data exists
                 if (!game || !game[HEADER_NAME]) return false;
                 
-                // This uses your variable from Step 1
-                return game[HEADER_NAME].toLowerCase().includes(filter);
                 const name = game[HEADER_NAME].toLowerCase();
-                return exact ? name === filter : name.includes(filter);
+                return name.includes(filter);
             });
             
         // --- Apply Sorting ---
@@ -460,7 +384,6 @@
         // --- Update UI Controls ---
         clearBtn.style.display = filter.length > 0 ? "block" : "none";
         gameCountDisplay.innerText = `Showing ${filteredGamesData.length} games`;
-        updateValuation();
 
             // Show "No Results" message if the filtered list is empty
             if (filteredGamesData.length === 0) {
@@ -519,7 +442,6 @@
     <!-- Feature 10: Custom Context Menu -->
     <div id="customContextMenu" class="custom-context-menu">
         <button onclick="contextPlay()">▶ Play on YouTube</button>
-        <button onclick="contextFav()">❤️ Toggle Wishlist</button>
     </div>
 </body>
 </html>
