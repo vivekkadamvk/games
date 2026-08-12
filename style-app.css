@@ -46,20 +46,38 @@
 
 /* The "hamburger" menu button (☰) */
 .open-nav-btn {
-    position: absolute;
-    top: 15px;
-    left: 20px;
-    font-size: 30px;
+    position: fixed;
+    top: 14px;
+    left: 16px;
+    width: 46px;
+    height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
     cursor: pointer;
-    background-color: transparent;
+    background:
+        linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.06)),
+        rgba(0,0,32,0.78);
     color: white;
-    padding: 0; 
-    border: none;
-    transition: color 0.2s;
-    z-index: 101;
+    padding: 0;
+    border: 1px solid rgba(0,229,255,0.42);
+    border-radius: 8px;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.32), 0 0 18px rgba(0,229,255,0.22), inset 0 1px 0 rgba(255,255,255,0.18);
+    backdrop-filter: blur(12px) saturate(140%);
+    transition: color 0.2s, transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    z-index: 130;
 }
-.open-nav-btn:hover {
-    color: #3e3eff;
+.open-nav-btn:hover,
+.open-nav-btn:focus-visible {
+    color: #00e5ff;
+    border-color: rgba(0,229,255,0.82);
+    box-shadow: 0 14px 32px rgba(0,0,0,0.38), 0 0 26px rgba(0,229,255,0.42), inset 0 1px 0 rgba(255,255,255,0.22);
+    transform: translateY(-1px);
+    outline: none;
+}
+.open-nav-btn:active {
+    transform: translateY(0) scale(0.97);
 }
 
 
@@ -112,19 +130,22 @@ body::after {
 body::before {
     z-index: 0;
     background:
-        radial-gradient(circle, rgba(255,255,255,0.88) 0 1px, transparent 1.8px) 12px 18px / 120px 120px,
-        radial-gradient(circle, rgba(0,229,255,0.65) 0 1px, transparent 1.9px) 66px 48px / 150px 150px,
-        radial-gradient(circle, rgba(255,255,255,0.52) 0 1px, transparent 1.7px) 35px 84px / 190px 190px;
-    animation: twinkleStars 7s ease-in-out infinite alternate;
+        radial-gradient(circle, rgba(255,255,255,1) 0 1.25px, transparent 2px) 12px 18px / 118px 118px,
+        radial-gradient(circle, rgba(0,229,255,0.95) 0 1.2px, transparent 2.1px) 66px 48px / 148px 148px,
+        radial-gradient(circle, rgba(255,255,255,0.82) 0 1px, transparent 1.9px) 35px 84px / 188px 188px,
+        radial-gradient(circle, rgba(255,0,127,0.55) 0 1px, transparent 2px) 92px 26px / 220px 220px;
+    filter: drop-shadow(0 0 4px rgba(255,255,255,0.75));
+    animation: twinkleStars 8s ease-in-out infinite alternate, starSurf 22s ease-in-out infinite;
 }
 
 body::after {
     z-index: 0;
     background:
-        linear-gradient(115deg, transparent 0 34%, rgba(0,229,255,0.08) 45%, transparent 58%),
-        linear-gradient(68deg, transparent 0 42%, rgba(255,255,255,0.06) 50%, transparent 62%);
-    background-size: 240% 240%, 180% 180%;
-    animation: soothingFlow 18s linear infinite;
+        radial-gradient(ellipse at 50% 120%, rgba(0,229,255,0.18), transparent 45%),
+        linear-gradient(105deg, transparent 0 28%, rgba(0,229,255,0.14) 42%, transparent 58%),
+        linear-gradient(68deg, transparent 0 36%, rgba(255,255,255,0.1) 50%, transparent 66%);
+    background-size: 160% 120%, 250% 250%, 190% 190%;
+    animation: soothingFlow 16s ease-in-out infinite;
     mix-blend-mode: screen;
 }
 
@@ -135,15 +156,24 @@ body::after {
 }
 
 @keyframes twinkleStars {
-    0% { opacity: 0.42; transform: translate3d(0, 0, 0); }
-    50% { opacity: 0.9; }
-    100% { opacity: 0.58; transform: translate3d(-16px, 20px, 0); }
+    0% { opacity: 0.62; }
+    35% { opacity: 1; }
+    70% { opacity: 0.78; }
+    100% { opacity: 0.96; }
+}
+
+@keyframes starSurf {
+    0% { transform: translate3d(-18px, 8px, 0) skewY(0deg); background-position: 12px 18px, 66px 48px, 35px 84px, 92px 26px; }
+    25% { transform: translate3d(12px, -10px, 0) skewY(-1deg); background-position: 38px 30px, 40px 66px, 70px 94px, 60px 48px; }
+    50% { transform: translate3d(28px, 12px, 0) skewY(1deg); background-position: 82px 42px, 10px 88px, 118px 70px, 36px 82px; }
+    75% { transform: translate3d(4px, 24px, 0) skewY(-0.6deg); background-position: 46px 62px, 86px 34px, 74px 118px, 126px 44px; }
+    100% { transform: translate3d(-18px, 8px, 0) skewY(0deg); background-position: 12px 18px, 66px 48px, 35px 84px, 92px 26px; }
 }
 
 @keyframes soothingFlow {
-    0% { background-position: 0% 50%, 100% 0%; opacity: 0.45; }
-    50% { opacity: 0.75; }
-    100% { background-position: 100% 50%, 0% 100%; opacity: 0.45; }
+    0% { background-position: 50% 110%, 0% 50%, 100% 0%; opacity: 0.55; transform: translateX(-1.5%); }
+    50% { background-position: 54% 96%, 100% 50%, 0% 100%; opacity: 0.86; transform: translateX(1.5%); }
+    100% { background-position: 50% 110%, 0% 50%, 100% 0%; opacity: 0.55; transform: translateX(-1.5%); }
 }
 
 .header {
@@ -213,8 +243,9 @@ h1 {
 
 /* --- OPTIMIZED Individual Game Card --- */
 .gameCard {
-    background-color: #ffffff;
-    border: 1px solid #e0e0e0;
+    background:
+        linear-gradient(180deg, rgba(255,255,255,0.98), rgba(230,244,255,0.94));
+    border: 1px solid rgba(255,255,255,0.28);
     border-radius: 8px;
     overflow: hidden;
     text-align: center;
@@ -222,6 +253,7 @@ h1 {
     transition: transform 0.2s;
     will-change: transform;
     cursor: pointer;
+    box-shadow: 0 18px 36px rgba(0,0,0,0.3), 0 0 0 1px rgba(0,229,255,0.08);
 }
 
 .gameCard:hover {
@@ -236,6 +268,10 @@ h1 {
     object-fit: cover;
     border-radius: 4px;
     background-color: #eee;
+    box-shadow: 0 14px 24px rgba(0,0,0,0.28);
+    filter: saturate(1.14) contrast(1.08) brightness(1.03);
+    transform: translateZ(0);
+    transition: filter 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .gameCard h3 {
@@ -412,13 +448,26 @@ h1 {
 
 /* 3. Live Counter & Sorting Row */
 .controls-row {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(120px, 1fr) auto minmax(120px, 1fr);
     align-items: center;
     width: 100%;
     max-width: 680px;
     color: #e0e0e0;
     font-size: 0.95rem;
+}
+
+#gameCount {
+    grid-column: 2;
+    justify-self: center;
+    padding: 7px 14px;
+    border: 1px solid rgba(0,229,255,0.24);
+    border-radius: 999px;
+    background: rgba(0,0,32,0.38);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 0 18px rgba(0,229,255,0.12);
+    color: #ffffff;
+    font-weight: 700;
+    text-align: center;
 }
 .sort-select {
     background: rgba(255,255,255,0.1);
@@ -533,7 +582,7 @@ h1 {
 @keyframes floatLogo { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 
 /* 4. Action Row & Grid Control */
-.controls-actions { display: flex; gap: 10px; align-items: center; }
+.controls-actions { display: flex; gap: 10px; align-items: center; justify-self: end; grid-column: 3; }
 .random-btn {
     background: linear-gradient(45deg, #ff3e3e, #ff007f);
     color: white; border: none; padding: 6px 12px; border-radius: 6px;
@@ -570,8 +619,36 @@ h1 {
 @keyframes fadeUpAnim { to { opacity: 1; transform: translateY(0); } }
 
 /* 7. 3D Hover & Glow Override */
-.gameCard { position: relative; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease; }
-.gameCard:hover { transform: translateY(-8px) scale(1.03); box-shadow: 0 15px 30px rgba(0, 229, 255, 0.2), 0 0 15px rgba(62,62,255,0.4); z-index: 2; }
+.gameCard {
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.gameCard::before {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    z-index: 0;
+    border-radius: 7px;
+    background: linear-gradient(135deg, rgba(0,229,255,0.22), transparent 35%, rgba(255,0,127,0.16));
+    opacity: 0.55;
+    pointer-events: none;
+}
+.gameCard > * {
+    position: relative;
+    z-index: 1;
+}
+.gameCard:hover {
+    transform: translateY(-10px) scale(1.035);
+    border-color: rgba(0,229,255,0.48);
+    box-shadow: 0 24px 48px rgba(0,0,0,0.42), 0 0 24px rgba(0, 229, 255, 0.24), 0 0 18px rgba(62,62,255,0.34);
+    z-index: 2;
+}
+.gameCard:hover img {
+    filter: saturate(1.24) contrast(1.12) brightness(1.08);
+    transform: translateY(-2px) scale(1.015);
+    box-shadow: 0 18px 30px rgba(0,0,0,0.34);
+}
 
 /* 8. Interactive Material Ripple */
 .ripple {
@@ -609,6 +686,14 @@ h1 {
 
 /* Android & Mobile Media Query */
 @media (max-width: 768px) {
+    .open-nav-btn {
+        top: 10px;
+        left: 10px;
+        width: 42px;
+        height: 42px;
+        font-size: 25px;
+    }
+
     body {
         background-attachment: scroll;
     }
@@ -627,11 +712,17 @@ h1 {
     }
 
     .controls-row {
-        flex-direction: column;
-        align-items: stretch;
+        grid-template-columns: 1fr;
+        justify-items: center;
         gap: 12px;
     }
+    #gameCount {
+        grid-column: 1;
+        max-width: calc(100vw - 96px);
+    }
     .controls-actions {
+        grid-column: 1;
+        justify-self: stretch;
         flex-wrap: wrap;
         justify-content: space-between;
     }
@@ -652,7 +743,7 @@ h1 {
         gap: 12px;
     }
     .gameCard:hover {
-        transform: translateY(-4px) scale(1.02); /* Less aggressive pop on mobile */
+        transform: translateY(-5px) scale(1.02); /* Less aggressive pop on mobile */
     }
 
     /* Fix header wrapping on small mobile/Android screens */
@@ -742,7 +833,9 @@ h1 {
     }
 
     .chip,
-    #searchInput {
+    #searchInput,
+    .gameCard,
+    .gameCard img {
         transition: none;
     }
 }
