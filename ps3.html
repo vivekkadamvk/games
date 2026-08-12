@@ -49,7 +49,7 @@
                 <input type="text" id="searchInput" list="searchHistoryList" oninput="debouncedFilterGames()" placeholder="Search for a PS3 game... (Press '/' to focus)">
                 <datalist id="searchHistoryList"></datalist>
                 <div class="search-icons">
-                    <button id="micBtn" class="mic-btn" onclick="startVoiceSearch()" title="Voice Search (Requires Microphone)">🎤</button>
+                    <button id="micBtn" class="mic-btn" onclick="startVoiceSearch()" title="Voice Search (Requires Microphone)"></button>
                     <span class="clear-btn" id="clearBtn" onclick="clearSearch()" title="Clear search">&times;</span>
                 </div>
             </div>
@@ -65,16 +65,6 @@
                 <span id="gameCount">Initializing library...</span>
                 <div class="controls-actions">
                     <button class="random-btn" onclick="playRandomGame()" title="Play a Random Game">🎲 Random</button>
-                    <select id="gridSelect" class="sort-select" onchange="changeGridSize()" title="Grid Size">
-                        <option value="150px">Medium Grid</option>
-                        <option value="120px">Small Grid</option>
-                        <option value="220px">Large Grid</option>
-                    </select>
-                    <select id="sortSelect" class="sort-select" onchange="filterGames()" title="Sort Games">
-                        <option value="default">Default Order</option>
-                        <option value="az">A to Z</option>
-                        <option value="za">Z to A</option>
-                    </select>
                     <button id="asBtn" class="business-btn" onclick="toggleAutoScroll()" title="Presentation Mode">⏬ Auto</button>
                 </div>
             </div>
@@ -180,7 +170,6 @@
             window.open(`https://www.youtube.com/results?search_query=${searchQuery}`, '_blank');
         }
 
-        function changeGridSize() { document.getElementById('galleryContainer').style.setProperty('--grid-size', document.getElementById('gridSelect').value); }
         document.addEventListener('keydown', (e) => { if (e.key === '/' && document.activeElement !== searchInput) { e.preventDefault(); searchInput.focus(); } });
         
         function trackAnalytics(event, data) { console.log(`[ANALYTICS] ${event}:`, data); }
@@ -321,10 +310,6 @@
                 return name.includes(filter);
             });
             
-            const sortVal = document.getElementById("sortSelect").value;
-            if (sortVal === "az") { filteredGamesData.sort((a, b) => (a[HEADER_NAME] || "").localeCompare(b[HEADER_NAME] || "")); } 
-            else if (sortVal === "za") { filteredGamesData.sort((a, b) => (b[HEADER_NAME] || "").localeCompare(a[HEADER_NAME] || "")); }
-
             clearBtn.style.display = filter.length > 0 ? "block" : "none";
             gameCountDisplay.innerText = `Showing ${filteredGamesData.length} games`;
 
@@ -404,3 +389,5 @@
     </div>
 </body>
 </html>
+
+
