@@ -345,7 +345,8 @@
         }
 
         // 5. This detects when the user scrolls to the bottom
-        window.onscroll = () => {
+        let scrollTicking = false;
+        function updateScrollUI() {
             const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
             const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
             const progressBar = document.getElementById("scrollProgressBar");
@@ -358,13 +359,22 @@
                 else controls.classList.remove('is-scrolled');
             }
 
+            scrollFunction();
+            scrollTicking = false;
+        }
+
+        window.addEventListener('scroll', () => {
+            if (!scrollTicking) {
+                window.requestAnimationFrame(updateScrollUI);
+                scrollTicking = true;
+            }
+
             if (isLoading) return; 
             // Load when we are 800px from the bottom
             if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 800) {
                 loadMoreGames();
             }
-            scrollFunction(); 
-        };
+        }, { passive: true });
 
         // --- SCROLL-TO-TOP JAVASCRIPT ---
         let mybutton = document.getElementById("goToTopBtn");

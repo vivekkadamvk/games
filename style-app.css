@@ -87,10 +87,63 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     margin: 0;
     padding: 0; 
-    background: linear-gradient(135deg, #0d0d5b, #000020);
+    background:
+        radial-gradient(circle at 20% 15%, rgba(0, 229, 255, 0.18), transparent 28%),
+        radial-gradient(circle at 80% 10%, rgba(255, 0, 127, 0.12), transparent 26%),
+        linear-gradient(135deg, #0d0d5b, #000020 58%, #050018);
     background-attachment: fixed;
     /* NEW: This prevents a horizontal scrollbar during animation */
     overflow-x: hidden;
+    overscroll-behavior-x: none;
+    -webkit-text-size-adjust: 100%;
+    position: relative;
+    min-height: 100vh;
+    isolation: isolate;
+}
+
+body::before,
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+}
+
+body::before {
+    z-index: 0;
+    background:
+        radial-gradient(circle, rgba(255,255,255,0.88) 0 1px, transparent 1.8px) 12px 18px / 120px 120px,
+        radial-gradient(circle, rgba(0,229,255,0.65) 0 1px, transparent 1.9px) 66px 48px / 150px 150px,
+        radial-gradient(circle, rgba(255,255,255,0.52) 0 1px, transparent 1.7px) 35px 84px / 190px 190px;
+    animation: twinkleStars 7s ease-in-out infinite alternate;
+}
+
+body::after {
+    z-index: 0;
+    background:
+        linear-gradient(115deg, transparent 0 34%, rgba(0,229,255,0.08) 45%, transparent 58%),
+        linear-gradient(68deg, transparent 0 42%, rgba(255,255,255,0.06) 50%, transparent 62%);
+    background-size: 240% 240%, 180% 180%;
+    animation: soothingFlow 18s linear infinite;
+    mix-blend-mode: screen;
+}
+
+.main-content,
+.site-footer {
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes twinkleStars {
+    0% { opacity: 0.42; transform: translate3d(0, 0, 0); }
+    50% { opacity: 0.9; }
+    100% { opacity: 0.58; transform: translate3d(-16px, 20px, 0); }
+}
+
+@keyframes soothingFlow {
+    0% { background-position: 0% 50%, 100% 0%; opacity: 0.45; }
+    50% { opacity: 0.75; }
+    100% { background-position: 100% 50%, 0% 100%; opacity: 0.45; }
 }
 
 .header {
@@ -114,18 +167,30 @@ h1 {
 #searchInput {
     width: 100%;
     box-sizing: border-box;
-    padding: 10px 40px 10px 15px; /* Extra padding right for the X button */
+    padding: 14px 88px 14px 48px; /* Extra padding right for the X button */
     font-size: 16px;
-    border: 1px solid #ddd;
+    color: #ffffff;
+    border: 1px solid rgba(255,255,255,0.28);
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    transition: all 0.3s ease;
+    background:
+        linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0.07)),
+        rgba(0,0,32,0.72);
+    box-shadow: 0 14px 35px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.18);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, transform 0.25s ease;
 }
 
 #searchInput:focus {
     outline: none;
-    border-color: #3e3eff;
-    box-shadow: 0 0 15px rgba(62, 62, 255, 0.6);
+    border-color: rgba(0, 229, 255, 0.9);
+    background:
+        linear-gradient(135deg, rgba(0,229,255,0.18), rgba(255,255,255,0.08)),
+        rgba(0,0,32,0.84);
+    box-shadow: 0 0 0 4px rgba(0,229,255,0.14), 0 18px 42px rgba(0,0,0,0.34), 0 0 28px rgba(0,229,255,0.35);
+    transform: translateY(-1px);
+}
+
+#searchInput::placeholder {
+    color: rgba(255,255,255,0.68);
 }
 
 #loading {
@@ -281,22 +346,55 @@ h1 {
     position: sticky;
     top: 0;
     z-index: 100;
-    background: rgba(13, 13, 91, 0.95);
-    backdrop-filter: blur(10px);
-    padding: 10px 20px;
+    background: linear-gradient(180deg, rgba(13,13,91,0.88), rgba(0,0,32,0.74));
+    backdrop-filter: blur(14px) saturate(135%);
+    padding: 14px 20px;
     margin: 0 -20px 15px -20px;
-    border-bottom: 1px solid rgba(62, 62, 255, 0.5);
+    border-bottom: 1px solid rgba(0, 229, 255, 0.28);
+    box-shadow: 0 18px 45px rgba(0,0,0,0.24);
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 10px;
+    will-change: padding;
 }
 
 /* 2. Clear Search Button Wrapper */
 .search-wrapper {
     position: relative;
     width: 100%;
-    max-width: 600px;
+    max-width: 680px;
+}
+.search-wrapper::before {
+    content: "";
+    position: absolute;
+    left: 17px;
+    top: 50%;
+    width: 15px;
+    height: 15px;
+    transform: translateY(-58%) rotate(-25deg);
+    border: 2px solid #00e5ff;
+    border-radius: 50%;
+    box-shadow: 0 0 14px rgba(0,229,255,0.8);
+    z-index: 1;
+}
+.search-wrapper::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    z-index: -1;
+    border-radius: 10px;
+    background: linear-gradient(90deg, rgba(0,229,255,0.7), rgba(255,0,127,0.45), rgba(255,255,255,0.55), rgba(0,229,255,0.7));
+    background-size: 260% 100%;
+    opacity: 0.24;
+    filter: blur(8px);
+    animation: searchGlowFlow 6s linear infinite;
+}
+@keyframes searchGlowFlow {
+    to { background-position: 260% 0; }
+}
+.search-wrapper:focus-within::before {
+    box-shadow: 0 0 20px rgba(0,229,255,0.95);
 }
 .clear-btn {
     position: absolute;
@@ -318,7 +416,7 @@ h1 {
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    max-width: 600px;
+    max-width: 680px;
     color: #e0e0e0;
     font-size: 0.95rem;
 }
@@ -511,6 +609,23 @@ h1 {
 
 /* Android & Mobile Media Query */
 @media (max-width: 768px) {
+    body {
+        background-attachment: scroll;
+    }
+
+    .main-content {
+        will-change: auto;
+    }
+
+    .gameCard {
+        touch-action: manipulation;
+        will-change: auto;
+    }
+
+    .header .logo {
+        animation: none;
+    }
+
     .controls-row {
         flex-direction: column;
         align-items: stretch;
@@ -519,6 +634,12 @@ h1 {
     .controls-actions {
         flex-wrap: wrap;
         justify-content: space-between;
+    }
+    .chip-container,
+    .controls-actions {
+        max-height: 180px;
+        opacity: 1;
+        transition: max-height 0.2s ease, opacity 0.2s ease;
     }
     .controls-actions select, .controls-actions button {
         flex: 1 1 30%; /* Let items stretch to fill space */
@@ -547,10 +668,81 @@ h1 {
     /* Collapse features on scroll for mobile */
     .controls-container.is-scrolled .chip-container,
     .controls-container.is-scrolled .controls-actions {
-        display: none !important;
+        max-height: 0;
+        opacity: 0;
+        overflow: hidden;
+        pointer-events: none;
+        margin: 0;
     }
     .controls-container.is-scrolled {
         padding: 10px 15px;
         gap: 8px;
+    }
+}
+
+.chip-container {
+    width: 100%;
+    max-width: 760px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 9px;
+}
+
+.chip {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.24);
+    border-radius: 999px;
+    padding: 8px 14px;
+    color: #ffffff;
+    background:
+        linear-gradient(135deg, rgba(0,229,255,0.22), rgba(62,62,255,0.22) 48%, rgba(255,0,127,0.18)),
+        rgba(255,255,255,0.08);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.22);
+    cursor: pointer;
+    font-weight: 700;
+    letter-spacing: 0;
+    transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+}
+
+.chip::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(110deg, transparent 0 30%, rgba(255,255,255,0.34) 46%, transparent 62%);
+    transform: translateX(-115%);
+    transition: transform 0.5s ease;
+}
+
+.chip:hover,
+.chip:focus-visible {
+    transform: translateY(-2px);
+    border-color: rgba(0,229,255,0.72);
+    box-shadow: 0 12px 26px rgba(0,0,0,0.28), 0 0 20px rgba(0,229,255,0.24);
+}
+
+.chip:hover::before,
+.chip:focus-visible::before {
+    transform: translateX(115%);
+}
+
+.chip:active {
+    transform: translateY(0) scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body::before,
+    body::after,
+    .search-wrapper::after,
+    .chip::before {
+        animation: none;
+    }
+
+    .chip,
+    #searchInput {
+        transition: none;
     }
 }
